@@ -1,0 +1,4 @@
+# This is the config for bunker plugin
+
+# Edit the message sent to the player when using /bunker here
+message: "Hello you typed /bunker"
