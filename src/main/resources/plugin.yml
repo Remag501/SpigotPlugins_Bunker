@@ -1,0 +1,4 @@
+name: Bunker
+version: '${project.version}'
+main: me.remag501.bunker.Bunker
+api-version: '1.21'
