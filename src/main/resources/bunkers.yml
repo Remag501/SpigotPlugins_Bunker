@@ -4,6 +4,6 @@
 # EDITING THIS FILE CAN RESULT IN THE LOST OF PLAYER'S BUNKERS
 
 # Number of bunkers
-totalBunkers: 0
-availableBunkers: 0
 # Player name: bunker_id
+totalBunkers: 0
+assignedBunkers: 0

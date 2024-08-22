@@ -11,7 +11,15 @@ public class ConfigUtil {
     private FileConfiguration config;
 
     public ConfigUtil(Plugin plugin, String path) {
-        this(plugin.getDataFolder().getAbsolutePath() + "/" + path);
+        this.file = new File(plugin.getDataFolder(), path);
+
+        // If the file does not exist, save the default resource
+        if (!file.exists()) {
+            plugin.saveResource(path, false);
+        }
+
+        // Load the configuration from the file
+        this.config = YamlConfiguration.loadConfiguration(this.file);
     }
 
     public ConfigUtil(String path) {

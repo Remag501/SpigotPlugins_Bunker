@@ -36,6 +36,12 @@ public class BunkerCommand implements CommandExecutor {
         // Allows players to visit the bunker by using the "visit" argument
         if (args.length > 0 && args[0].equalsIgnoreCase("visit"))
             return visit(); // Will need args[1] for the bunker name
+        if (args.length > 1 && args[0].equalsIgnoreCase("admin") && args[1].equalsIgnoreCase("add"))
+            return addBunkers(Integer.parseInt(args[2]), sender); // Create more bunkers using multicore
+        if (args.length > 0) {
+            sender.sendMessage("Invalid arguments! Use /bunker [buy/home/visit]");
+            return true;
+        }
         // No arguments
         return bunkerHome(sender);
     }
@@ -53,8 +59,8 @@ public class BunkerCommand implements CommandExecutor {
         }
         else {
             // Decrease the available bunkers count
-            config.getConfig().set("assignedBunkers", totalBunkers + 1);
-            config.getConfig().set(buyer.getName(), assignedBunkers + 1);
+            config.getConfig().set("assignedBunkers", assignedBunkers + 1);
+            config.getConfig().set(buyer.getName(), assignedBunkers);
             config.save();
             buyer.sendMessage("You have successfully purchased a bunker!");
             return true;
@@ -72,4 +78,16 @@ public class BunkerCommand implements CommandExecutor {
         return true; // Replace with actual implementation
 
     }
+
+    public boolean addBunkers(int bunkers, CommandSender sender) {
+        ((Player) sender).sendMessage("Added " + bunkers + " bunkers.");
+        ConfigUtil config = new ConfigUtil(plugin,"bunkers.yml");
+        int totalBunkers = config.getConfig().getInt("totalBunkers");
+        totalBunkers += bunkers;
+        config.getConfig().set("totalBunkers", totalBunkers);
+        config.save();
+        // Implement world creation
+        return true;
+    }
+
 }
