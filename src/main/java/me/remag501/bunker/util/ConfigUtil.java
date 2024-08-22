@@ -10,7 +10,7 @@ public class ConfigUtil {
     private File file;
     private FileConfiguration config;
 
-    public ConfigUtil(Plugin plugin , String path) {
+    public ConfigUtil(Plugin plugin, String path) {
         this(plugin.getDataFolder().getAbsolutePath() + "/" + path);
     }
 

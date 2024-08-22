@@ -1,0 +1,9 @@
+# File stores information the plugin to keep track of the bunker and is not meant to be edited
+
+# WARNING: DO NOT TAMPER WITH CONTENTS OF THIS FILE UNLESS YOU KNOW WHAT YOU ARE DOING
+# EDITING THIS FILE CAN RESULT IN THE LOST OF PLAYER'S BUNKERS
+
+# Number of bunkers
+totalBunkers: 0
+availableBunkers: 0
+# Player name: bunker_id
