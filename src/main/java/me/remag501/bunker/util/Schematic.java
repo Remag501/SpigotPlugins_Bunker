@@ -130,7 +130,7 @@ import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldedit.world.World;
-import org.bukkit.Bukkit;
+import com.sk89q.worldedit.util.Vector;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -188,10 +188,13 @@ import java.io.IOException;
                 // Create a ClipboardHolder for pasting the schematic
                 ClipboardHolder holder = new ClipboardHolder(clipboard);
 
+                Vector vector = new Vector(bukkitLocation.getBlockX(), bukkitLocation.getBlockY(), bukkitLocation.getBlockZ());
+
                 // Set up the paste operation
-                Operation operation = holder.createPaste(editSession)
-                        .to(pasteLocation.toVector().toBlockPoint())
-                        .ignoreAirBlocks(false) // Set to true if you want to ignore air blocks
+                Operation operation = holder
+                        .createPaste(editSession)
+                        .to(vector)
+                        .ignoreAirBlocks(true)
                         .build();
 
                 // Complete the operation

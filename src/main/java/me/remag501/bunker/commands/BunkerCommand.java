@@ -114,10 +114,9 @@ public class BunkerCommand implements CommandExecutor {
         Plugin multiversePlugin = Bukkit.getPluginManager().getPlugin("Multiverse-Core");
         MultiverseCore multiverseCore = (MultiverseCore) multiversePlugin;
         MVWorldManager worldManager = multiverseCore.getMVWorldManager();
-//        // Define the world name and type
+       // Define the world name and type
         String worldName = "new_world";
-//        WorldType
-//        // Create the world
+        // Create the world
         if (worldManager.getMVWorld(worldName) == null) {
             worldManager.addWorld(
                     worldName, // name of world
