@@ -81,7 +81,7 @@ public class BunkerCommand implements CommandExecutor {
         }
     }
     private boolean visit(CommandSender sender) {
-        createBunkerWorld(sender);
+        sender.sendMessage("Visiting bunker... not implemented yet");
         return true; // Replace with actual implementation
     }
 
@@ -102,21 +102,24 @@ public class BunkerCommand implements CommandExecutor {
         config.getConfig().set("totalBunkers", totalBunkers);
         config.save();
         // Implement world creation
+//        for (int i < 0; i < bunkers; i++) {
+//
+//        }
         return true;
     }
 
-    private void createBunkerWorld(CommandSender sender) {
+    private void createBunkerWorld(CommandSender sender, String worldName) {
+        // Check if schematic file exists
         File schematicFile = new File(plugin.getDataFolder(), "schematics/bunker.schem");
         if (!schematicFile.exists()) {
             ((Player) sender).sendMessage("No schematic found. Make sure you named it correctly and its placed in schematics/bunker.schem");
             return;
         }
+        // Check if Multiverse-Core is installed
         Plugin multiversePlugin = Bukkit.getPluginManager().getPlugin("Multiverse-Core");
         MultiverseCore multiverseCore = (MultiverseCore) multiversePlugin;
         MVWorldManager worldManager = multiverseCore.getMVWorldManager();
-       // Define the world name and type
-        String worldName = "new_world";
-        // Create the world
+        // Create the void world
         if (worldManager.getMVWorld(worldName) == null) {
             worldManager.addWorld(
                     worldName, // name of world
@@ -132,7 +135,7 @@ public class BunkerCommand implements CommandExecutor {
         }
         // Add schematic to empty world
         Location pasteLocation = new Location(Bukkit.getWorld(worldName), 0, 0, 0);
-        Schematic schematic = new Schematic(pasteLocation, schematicFile);
+        Schematic schematic = new Schematic(schematicFile, pasteLocation);
         schematic.loadAndPasteSchematic();
     }
 
