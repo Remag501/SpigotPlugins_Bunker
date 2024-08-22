@@ -1,10 +1,21 @@
 name: Bunker
-version: '${project.version}'
+author: Remag501
+version: '1.0'
 main: me.remag501.bunker.Bunker
 # api-version: '1.21'
+
 commands:
   bunker:
     description: 'Manage bunkers'
     usage: '/bunker <command> [args]'
     aliases: ['b']
     permission: 'bunker.command'
+
+depend:
+  - WorldEdit
+  - Multiverse-Core
+
+softdepend:
+  - Vault
+  - PlaceHolderAPI
+  - VoidGen
