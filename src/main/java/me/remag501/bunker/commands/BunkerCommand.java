@@ -11,6 +11,7 @@ import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.WorldType;
@@ -66,14 +67,20 @@ public class BunkerCommand implements CommandExecutor {
     }
 
     private boolean assignBunker(Player buyer) {
+        // Get config message strings
+        FileConfiguration msgConfig = plugin.getConfig();
+        String noBunkers = msgConfig.getString("noBunkers"),
+                alreadyPurchased = msgConfig.getString("alreadyPurchased"),
+                bunkerPurchased = msgConfig.getString("bunkerPurchased");
+        // Check if the player has enough storage for bunkers and has not already bought one
         ConfigUtil config = new ConfigUtil(plugin, "bunkers.yml");
         int assignedBunkers = config.getConfig().getInt("assignedBunkers");
         int totalBunkers = config.getConfig().getInt("totalBunkers");
         if (assignedBunkers == totalBunkers) {
-            buyer.sendMessage("Fatal error: Out of storage for bunkers. Contact an admin to help you out!");
+            buyer.sendMessage(noBunkers);
             return true;
         } else if (config.getConfig().contains(buyer.getName())) {
-            buyer.sendMessage("You have already purchased a bunker!");
+            buyer.sendMessage(alreadyPurchased);
             return true;
         }
         else {
@@ -81,28 +88,39 @@ public class BunkerCommand implements CommandExecutor {
             config.getConfig().set("assignedBunkers", assignedBunkers + 1);
             config.getConfig().set(buyer.getName(), assignedBunkers);
             config.save();
-            buyer.sendMessage("You have successfully purchased a bunker!");
+            buyer.sendMessage(bunkerPurchased);
             return true;
         }
     }
     private boolean visit(CommandSender sender, String playerName) {
+        // Get config message strings
+        FileConfiguration msgConfig = plugin.getConfig();
+        String playerNotExist = msgConfig.getString("playerNotExist"),
+                visitMsg = msgConfig.getString("visitMsg"); // Revisit
+        playerNotExist = playerNotExist.replace("%player%", playerName);
+        visitMsg = visitMsg.replace("%player%", playerName);
+        // Check if the player exists
         ConfigUtil config = new ConfigUtil(plugin, "bunkers.yml");
         if (!config.getConfig().contains(playerName)) {
-            sender.sendMessage("Player does not exist or have a bunker!");
+            sender.sendMessage(playerNotExist);
             return true;
         }
+        // Teleport player to their bunker
         String worldName = "bunker_" + config.getConfig().getString(playerName);
-        sender.sendMessage("Visiting " + playerName + "'s bunker");
+        sender.sendMessage(visitMsg);
         teleportPlayer((Player) sender, worldName);
         return true;
     }
 
     private boolean bunkerHome(CommandSender sender) {
+        // Get config message strings
+        String playerNotExist = plugin.getConfig().getString("playerNotExist");
+        playerNotExist = playerNotExist.replace("%player%", sender.getName());
         // Handle the default case: no arguments or non-reload arguments
-        ConfigUtil config = new ConfigUtil(plugin, "bunkers.yml");
+        ConfigUtil config = new ConfigUtil(plugin, ")bunkers.yml");
         // Check if player has a bunker
         if (!config.getConfig().contains(sender.getName())) {
-            sender.sendMessage("You do not have a bunker. Use /bunker buy to purchase one.");
+            sender.sendMessage(playerNotExist);
             return true;
         }
         // Send player teleport message
@@ -152,10 +170,21 @@ public class BunkerCommand implements CommandExecutor {
     }
 
     private void createBunkerWorld(CommandSender sender, String worldName, File schematicFile) {
+        // Get config message strings
+        FileConfiguration coordConfig = plugin.getConfig();
+        int x = coordConfig.getInt("schematicCoords.x");
+        int y = coordConfig.getInt("schematicCoords.y");
+        int z = coordConfig.getInt("schematicCoords.z");
+        int spawnX = coordConfig.getInt("spawnCoords.x");
+        int spawnY = coordConfig.getInt("spawnCoords.y");
+        int spawnZ = coordConfig.getInt("spawnCoords.z");
+        float yaw = (float) coordConfig.getDouble("spawnCoords.yaw");
+        float pitch = (float) coordConfig.getDouble("spawnCoords.pitch");
         // Check if Multiverse-Core is installed
         Plugin multiversePlugin = Bukkit.getPluginManager().getPlugin("Multiverse-Core");
         MultiverseCore multiverseCore = (MultiverseCore) multiversePlugin;
         MVWorldManager worldManager = multiverseCore.getMVWorldManager();
+        // Set the spawn for worldManager
         // Create the void world
         if (worldManager.getMVWorld(worldName) == null) {
             worldManager.addWorld(
@@ -171,9 +200,17 @@ public class BunkerCommand implements CommandExecutor {
             return;
         }
         // Add schematic to empty world
-        Location pasteLocation = new Location(Bukkit.getWorld(worldName), 0, 0, 0);
+        Location pasteLocation = new Location(Bukkit.getWorld(worldName), x, y, z);
         Schematic schematic = new Schematic(schematicFile, pasteLocation);
         schematic.loadAndPasteSchematic();
+        // Set spawn location for new world
+        Location newSpawn  = new Location(Bukkit.getWorld(worldName), spawnX, spawnY, spawnZ, yaw, pitch);
+        World world = Bukkit.getWorld(worldName);
+        worldManager.getMVWorld(world).setSpawnLocation(newSpawn); // multiverse world spawn
+        world.setSpawnLocation(newSpawn); // Bukkit world spawn, wont set server spawn unless in main world
+        if (!(world.getSpawnLocation().getX() == spawnX && world.getSpawnLocation().getY() == spawnY && world.getSpawnLocation().getZ() == spawnZ))
+            sender.sendMessage("Failed to set spawn location for world " + worldName + ". Check your configurtion.yml to adjust coordinates and make sure there are no obstructions, or it is not on air.");
+        plugin.getLogger().info("World spawn set to " + newSpawn.toString());
     }
 
 }
