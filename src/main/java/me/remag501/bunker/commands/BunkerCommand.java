@@ -114,19 +114,20 @@ public class BunkerCommand implements CommandExecutor {
 
     private boolean bunkerHome(CommandSender sender) {
         // Get config message strings
-        String playerNotExist = plugin.getConfig().getString("playerNotExist");
-        playerNotExist = playerNotExist.replace("%player%", sender.getName());
+        String noBunker = plugin.getConfig().getString("noBunker");
+        noBunker = noBunker.replace("%player%", sender.getName());
+        String homeMsg = plugin.getConfig().getString("homeMsg");
+        homeMsg = homeMsg.replace("%player%", sender.getName());
         // Handle the default case: no arguments or non-reload arguments
-        ConfigUtil config = new ConfigUtil(plugin, ")bunkers.yml");
+        ConfigUtil config = new ConfigUtil(plugin, "bunkers.yml");
         // Check if player has a bunker
         if (!config.getConfig().contains(sender.getName())) {
-            sender.sendMessage(playerNotExist);
+            sender.sendMessage(noBunker);
             return true;
         }
         // Send player teleport message
-        String message = plugin.getConfig().getString("message", "Default message");
         Player player = (Player) sender;
-        player.sendMessage(message);
+        player.sendMessage(homeMsg);
         // Teleport player to their bunker
         // Get worldname
         String worldName = config.getConfig().getString(player.getName());

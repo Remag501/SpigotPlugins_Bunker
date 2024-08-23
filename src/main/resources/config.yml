@@ -3,6 +3,7 @@
 
 # Edit the message sent to the player when using /bunker home
 homeMsg: "Teleporting you to your bunker..."
+noBunker: "You don't own a bunker. Use /bunker buy to obtain one"
 # Edit the message sent to the player when using /bunker visit
 playerNotExist: "Player does not exist or have a bunker!"
 visitMsg: "Teleporting you to %player%'s bunker..."
