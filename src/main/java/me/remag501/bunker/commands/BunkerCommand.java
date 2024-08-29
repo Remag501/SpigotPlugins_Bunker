@@ -6,6 +6,9 @@ import com.onarandombox.MultiverseCore.MultiverseCore;
 import com.onarandombox.MultiverseCore.api.MVWorldManager;
 import me.remag501.bunker.Bunker;
 import me.remag501.bunker.util.ConfigUtil;
+import net.citizensnpcs.api.CitizensAPI;
+import net.citizensnpcs.api.npc.NPC;
+import net.citizensnpcs.api.trait.Trait;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.command.Command;
@@ -16,16 +19,21 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.WorldType;
 import org.bukkit.Location;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 
 import static org.bukkit.Bukkit.getLogger;
 
 public class BunkerCommand implements CommandExecutor {
 
     private final Bunker plugin;
+    private final Set<UUID> runningTasks = new HashSet<>();
 
     public BunkerCommand(Bunker plugin) {
         this.plugin = plugin;
@@ -56,6 +64,8 @@ public class BunkerCommand implements CommandExecutor {
         }
         if (args.length > 0 && args[0].equalsIgnoreCase("visit"))
             return visit(sender, args[1]); // Will need args[1] for the player name
+//        if (args.length > 0 && args[0].equalsIgnoreCase("test")) // Will be removed later
+//            return cloneNPC(sender); // Will need args[1] for the player name
         if (args.length > 1 && args[0].equalsIgnoreCase("admin") && args[1].equalsIgnoreCase("add"))
             return addBunkers(Integer.parseInt(args[2]), sender); // Create more bunkers using multicore
         if (args.length > 0) {
@@ -64,6 +74,31 @@ public class BunkerCommand implements CommandExecutor {
         }
         // No arguments
         return bunkerHome(sender);
+    }
+
+    private boolean addNPC(CommandSender sender, World world) {
+        // Get config message strings
+        FileConfiguration npcConfig = plugin.getConfig();
+        int npcID = npcConfig.getInt("npcID");
+        double npcX = npcConfig.getDouble("npcCoords.x");
+        double npcY = npcConfig.getDouble("npcCoords.y");
+        double npcZ = npcConfig.getDouble("npcCoords.z");
+        float npcYaw = (float) npcConfig.getDouble("npcCoords.yaw");
+        float npcPitch = (float) npcConfig.getDouble("npcCoords.pitch");
+        // Copy the NPC
+        NPC npc = CitizensAPI.getNPCRegistry().getById(npcID);
+        NPC clone = CitizensAPI.getNPCRegistry().createNPC(npc.getEntity().getType(), npc.getName());
+        // Clone traits from the original NPC
+        for (Trait trait : npc.getTraits()) {
+            clone.addTrait(trait.getClass());
+        }
+        // Set the location of the cloned NPC
+        Location newLocation = new Location(world, npcX, npcY, npcZ); // Provide the x, y, z coordinates
+        newLocation.setYaw(npcYaw);
+        newLocation.setPitch(npcPitch);
+        // Spawn the cloned NPC at the new location
+        clone.spawn(newLocation);
+        return true;
     }
 
     private boolean assignBunker(Player buyer) {
@@ -112,7 +147,7 @@ public class BunkerCommand implements CommandExecutor {
         return true;
     }
 
-    private boolean bunkerHome(CommandSender sender) {
+    private boolean bunkerHome(@NotNull CommandSender sender) {
         // Get config message strings
         String noBunker = plugin.getConfig().getString("noBunker");
         noBunker = noBunker.replace("%player%", sender.getName());
@@ -151,6 +186,8 @@ public class BunkerCommand implements CommandExecutor {
         }
     }
 
+
+
     private boolean addBunkers(int bunkers, CommandSender sender) {
         // Check if schematic file exists
         File schematicFile = new File(plugin.getDataFolder(), "schematics/bunker.schem");
@@ -158,15 +195,28 @@ public class BunkerCommand implements CommandExecutor {
             ((Player) sender).sendMessage("No schematic found. Make sure you named it correctly and its placed in schematics/bunker.schem");
             return true;
         }
+        // Get UUID and playerID
+        Player player = null;
+        UUID playerId = null;
+        if (sender instanceof Player) {
+            player = (Player) sender;
+            playerId = player.getUniqueId();
+        }
+        // Check if the player already triggered the command
+        if (runningTasks.contains(playerId)) {
+            player.sendMessage("The bunker creation is still in progress. Please wait.");
+            return true;
+        }
+        runningTasks.add(playerId);
         // Update bunker count in config
         ConfigUtil config = new ConfigUtil(plugin,"bunkers.yml");
         int totalBunkers = config.getConfig().getInt("totalBunkers");
         config.getConfig().set("totalBunkers", totalBunkers + bunkers);
         config.save();
-        // Create bunker worlds with schematic file
+        // Create the bunkers on a different world
         for (int i = 0; i < bunkers; i++)
             createBunkerWorld(sender, "bunker_" + (totalBunkers + i), schematicFile);
-        ((Player) sender).sendMessage("Added " + bunkers + " bunkers.");
+        sender.sendMessage("Created " + bunkers + " bunkers.");
         return true;
     }
 
@@ -176,17 +226,17 @@ public class BunkerCommand implements CommandExecutor {
         int x = coordConfig.getInt("schematicCoords.x");
         int y = coordConfig.getInt("schematicCoords.y");
         int z = coordConfig.getInt("schematicCoords.z");
-        int spawnX = coordConfig.getInt("spawnCoords.x");
-        int spawnY = coordConfig.getInt("spawnCoords.y");
-        int spawnZ = coordConfig.getInt("spawnCoords.z");
+        double spawnX = coordConfig.getDouble("spawnCoords.x");
+        double spawnY = coordConfig.getDouble("spawnCoords.y");
+        double spawnZ = coordConfig.getDouble("spawnCoords.z");
         float yaw = (float) coordConfig.getDouble("spawnCoords.yaw");
         float pitch = (float) coordConfig.getDouble("spawnCoords.pitch");
         // Check if Multiverse-Core is installed
         Plugin multiversePlugin = Bukkit.getPluginManager().getPlugin("Multiverse-Core");
         MultiverseCore multiverseCore = (MultiverseCore) multiversePlugin;
         MVWorldManager worldManager = multiverseCore.getMVWorldManager();
-        // Set the spawn for worldManager
-        // Create the void world
+//         Set the spawn for worldManager
+//         Create the void world
         if (worldManager.getMVWorld(worldName) == null) {
             worldManager.addWorld(
                     worldName, // name of world
@@ -200,10 +250,22 @@ public class BunkerCommand implements CommandExecutor {
             plugin.getLogger().info("World " + worldName + " already exists.");
             return;
         }
-        // Add schematic to empty world
+        // Add schematic to empty world via multithreading
+        UUID playerId = ((Player) sender).getUniqueId();
         Location pasteLocation = new Location(Bukkit.getWorld(worldName), x, y, z);
         Schematic schematic = new Schematic(schematicFile, pasteLocation);
         schematic.loadAndPasteSchematic();
+        // Not running anything asynchronously currently
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                // Add schematic file to bunker file
+//                schematic.loadAndPasteSchematic();
+            } finally {
+                // Remove the player from the set after the task is completed
+                sender.sendMessage("Loaded bunker schematics!");
+                runningTasks.remove(playerId);
+            }
+                });
         // Set spawn location for new world
         Location newSpawn  = new Location(Bukkit.getWorld(worldName), spawnX, spawnY, spawnZ, yaw, pitch);
         World world = Bukkit.getWorld(worldName);
@@ -212,6 +274,35 @@ public class BunkerCommand implements CommandExecutor {
         if (!(world.getSpawnLocation().getX() == spawnX && world.getSpawnLocation().getY() == spawnY && world.getSpawnLocation().getZ() == spawnZ))
             sender.sendMessage("Failed to set spawn location for world " + worldName + ". Check your configurtion.yml to adjust coordinates and make sure there are no obstructions, or it is not on air.");
         plugin.getLogger().info("World spawn set to " + newSpawn.toString());
+        // Add npc to the bunker
+        addNPC(sender, world);
+
+        // Create bunker world in a seperate thread for optimization
+//        if (sender instanceof Player) {
+//            Player player = (Player) sender;
+//            UUID playerId = player.getUniqueId();
+//
+//            // Check if the player already triggered the command
+//            if (runningTasks.contains(playerId)) {
+//                player.sendMessage("The bunker creation is still in progress. Please wait.");
+//                return true;
+//            }
+//            runningTasks.add(playerId);
+            // Create the bunkers
+//            for (int i = 0; i < bunkers; i++) {
+//                // Run the task asynchronously
+//                final int finalI = i;
+//                Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+//                    try {
+//                        // Create bunker worlds with schematic file
+//                        createBunkerWorld(sender, "bunker_" + (totalBunkers + finalI), schematicFile);
+//                    } finally {
+//                        // Remove the player from the set after the task is completed
+//                        runningTasks.remove(playerId);
+//                    }
+//                });
+//            }
+//        }
     }
 
 }

@@ -41,7 +41,7 @@
                         </goals>
                         <configuration>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
-                            <outputFile>C:\Users\TheRe\Desktop\Bunker-1.2_SNAPSHOT.jar</outputFile>
+                            <outputFile>C:\Users\TheRe\Desktop\Bunker-SNAPSHOT_24w34a.jar</outputFile>
                         </configuration>
                     </execution>
                 </executions>
@@ -76,6 +76,10 @@
             <id>enginehub-maven</id>
                 <url>https://maven.enginehub.org/repo/</url>
         </repository>
+        <repository>
+            <id>citizens-repo</id>
+            <url>https://maven.citizensnpcs.co/repo</url>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -107,6 +111,12 @@
             <groupId>com.sk89q.worldedit</groupId>
             <artifactId>worldedit-bukkit</artifactId>
             <version>7.2.14</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.citizensnpcs</groupId>
+            <artifactId>citizensapi</artifactId>
+            <version>2.0.35-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

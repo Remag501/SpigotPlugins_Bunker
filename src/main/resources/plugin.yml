@@ -14,6 +14,7 @@ commands:
 depend:
   - WorldEdit
   - Multiverse-Core
+  - Citizens
 
 softdepend:
   - Vault

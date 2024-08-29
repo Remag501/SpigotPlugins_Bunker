@@ -22,9 +22,16 @@ schematicCoords:
   y: 0
   z: 0
 spawnCoords:
-  x: 0
-  y: 0
-  z: 0
+  x: 0.0
+  y: 0.0
+  z: 0.0
+  yaw: 0.0
+  pitch: 0.0
+npcID: 0
+npcCoords:
+  x: 0.0
+  y: 0.0
+  z: 0.0
   yaw: 0.0
   pitch: 0.0
 # Server properties not implemented
