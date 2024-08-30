@@ -16,6 +16,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.WorldType;
 import org.bukkit.Location;
@@ -64,8 +65,8 @@ public class BunkerCommand implements CommandExecutor {
         }
         if (args.length > 0 && args[0].equalsIgnoreCase("visit"))
             return visit(sender, args[1]); // Will need args[1] for the player name
-//        if (args.length > 0 && args[0].equalsIgnoreCase("test")) // Will be removed later
-//            return cloneNPC(sender); // Will need args[1] for the player name
+        if (args.length > 0 && args[0].equalsIgnoreCase("test")) // Will be removed later
+            return test(sender); // Will need args[1] for the player name
         if (args.length > 1 && args[0].equalsIgnoreCase("admin") && args[1].equalsIgnoreCase("add"))
             return addBunkers(Integer.parseInt(args[2]), sender); // Create more bunkers using multicore
         if (args.length > 0) {
@@ -74,6 +75,19 @@ public class BunkerCommand implements CommandExecutor {
         }
         // No arguments
         return bunkerHome(sender);
+    }
+
+    private boolean test(CommandSender sender) {
+        Player player = (Player) sender;
+        // Copy the NPC
+        NPC npc = CitizensAPI.getNPCRegistry().getById(0);
+        NPC clone = npc.clone();
+        // Set the location of the cloned NPC
+        Location newLocation = player.getLocation(); // Provide the x, y, z coordinates
+        clone.teleport(newLocation, PlayerTeleportEvent.TeleportCause.PLUGIN);
+        // Spawn the cloned NPC at the new location
+        clone.spawn(newLocation);
+        return true;
     }
 
     private boolean addNPC(CommandSender sender, World world) {
@@ -87,17 +101,16 @@ public class BunkerCommand implements CommandExecutor {
         float npcPitch = (float) npcConfig.getDouble("npcCoords.pitch");
         // Copy the NPC
         NPC npc = CitizensAPI.getNPCRegistry().getById(npcID);
-        NPC clone = CitizensAPI.getNPCRegistry().createNPC(npc.getEntity().getType(), npc.getName());
-        // Clone traits from the original NPC
-        for (Trait trait : npc.getTraits()) {
-            clone.addTrait(trait.getClass());
-        }
+        NPC clone = npc.clone();
         // Set the location of the cloned NPC
         Location newLocation = new Location(world, npcX, npcY, npcZ); // Provide the x, y, z coordinates
         newLocation.setYaw(npcYaw);
         newLocation.setPitch(npcPitch);
+        // Override location of cloned npc to new location
+        clone.teleport(newLocation, PlayerTeleportEvent.TeleportCause.PLUGIN);
         // Spawn the cloned NPC at the new location
         clone.spawn(newLocation);
+        plugin.getLogger().info("Added npc to world!");
         return true;
     }
 
@@ -185,8 +198,6 @@ public class BunkerCommand implements CommandExecutor {
             player.sendMessage("Spawn location not found in world: " + worldName + ". Contact an admin for help!");
         }
     }
-
-
 
     private boolean addBunkers(int bunkers, CommandSender sender) {
         // Check if schematic file exists

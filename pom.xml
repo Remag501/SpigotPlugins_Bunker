@@ -6,7 +6,7 @@
 
     <groupId>me.Remag501</groupId>
     <artifactId>Bunker</artifactId>
-    <version>1.</version>
+    <version>1.2-SNAPSHOT_24w35a</version>
     <packaging>jar</packaging>
 
     <name>Bunker</name>
