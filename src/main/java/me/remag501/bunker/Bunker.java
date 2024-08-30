@@ -15,8 +15,10 @@ public final class Bunker extends JavaPlugin {
         // Plugin startup logic
         saveDefaultConfig();
         ConfigUtil config = new ConfigUtil(this, "bunkers.yml");
-
-        getCommand("bunker").setExecutor(new BunkerCommand(this));
+        // Reload configuration
+        BunkerCommand command = new BunkerCommand(this);
+        command.reload(null);
+        getCommand("bunker").setExecutor(command);
         getLogger().info("Bunker has been enabled!");
 
     }

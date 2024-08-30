@@ -1,6 +1,7 @@
 package me.remag501.bunker.commands;
 
 import com.onarandombox.MultiverseCore.api.MultiverseWorld;
+import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import me.remag501.bunker.util.Schematic;
 import com.onarandombox.MultiverseCore.MultiverseCore;
 import com.onarandombox.MultiverseCore.api.MVWorldManager;
@@ -24,17 +25,21 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import static org.bukkit.Bukkit.getLogger;
 
 public class BunkerCommand implements CommandExecutor {
 
     private final Bunker plugin;
-    private final Set<UUID> runningTasks = new HashSet<>();
+    private Set<UUID> runningTasks = new HashSet<>();
+    private HashMap<String, String> messages = new HashMap<String, String>();
+//    private final HashMap<String, Integer> configInts = new HashMap<String, Integer>();
+    private HashMap<String, Double> doubles = new HashMap<String, Double>();
+
+    private Schematic schematic;
+    private Clipboard clipboard;
+    private File schematicFile;
 
     public BunkerCommand(Bunker plugin) {
         this.plugin = plugin;
@@ -42,39 +47,39 @@ public class BunkerCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        // May remove
+        // Check if the sender is a player
         if (!(sender instanceof Player)) {
             sender.sendMessage("This command can only be executed by players.");
             return true;
         }
-        // Handle the "reload" argument
-        if (args.length > 0 && args[0].equalsIgnoreCase("reload")) {
-            // Reload the configuration
-            plugin.reloadConfig();
-            sender.sendMessage("Configuration reloaded successfully.");
-            return true;
-        }
-        if (args.length > 0 && args[0].equalsIgnoreCase("buy"))
-            return assignBunker((Player) sender);
-        if (args.length > 0 && args[0].equalsIgnoreCase("home"))
-            return bunkerHome(sender);
-        // Allows players to visit the bunker by using the "visit" argument
-        if (args.length == 1 && args[0].equalsIgnoreCase("visit")) {
-            sender.sendMessage("Usage: /bunker visit [player]");
-            return true;
-        }
-        if (args.length > 0 && args[0].equalsIgnoreCase("visit"))
-            return visit(sender, args[1]); // Will need args[1] for the player name
-        if (args.length > 0 && args[0].equalsIgnoreCase("test")) // Will be removed later
-            return test(sender); // Will need args[1] for the player name
-        if (args.length > 1 && args[0].equalsIgnoreCase("admin") && args[1].equalsIgnoreCase("add"))
-            return addBunkers(Integer.parseInt(args[2]), sender); // Create more bunkers using multicore
-        if (args.length > 0) {
-            sender.sendMessage("Invalid arguments! Use /bunker [buy/home/visit]");
-            return true;
-        }
         // No arguments
-        return bunkerHome(sender);
+        if (args.length == 0) {
+            return bunkerHome(sender);
+        }
+        switch (args[0].toLowerCase()) {
+            case "buy": // Allows players to buy a bunker by using the "buy" argument
+                return assignBunker((Player) sender);
+            case "home": // Allows players to go to their bunker home by using the "home" argument
+                return bunkerHome(sender);
+            case "visit": // Allows players to visit the bunker by using the "visit" argument
+                if (args.length == 2) {
+                    return visit(sender, args[1]); // Will need args[1] for the player name
+                } else {
+                    sender.sendMessage("Usage: /bunker visit [player]");
+                    return true;
+                }
+            case "reload": // Handle the "reload" argument
+                reload(sender);
+            case "admin": // Create more bunkers using multicore
+                if (args.length == 3 && args[1].equalsIgnoreCase("add")) {
+                    return addBunkers(Integer.parseInt(args[2]), sender);
+                }
+                break;
+            default:
+                sender.sendMessage("Invalid arguments! Use /bunker [buy/home/visit]");
+                return true;
+        }
+        return false;
     }
 
     private boolean test(CommandSender sender) {
@@ -90,15 +95,64 @@ public class BunkerCommand implements CommandExecutor {
         return true;
     }
 
+    public boolean reload(CommandSender sender) {
+        plugin.reloadConfig();
+        FileConfiguration config = plugin.getConfig();
+        // Load messages from config
+        messages.put("noBunkers", config.getString("noBunkers"));
+        messages.put("alreadyPurchased", config.getString("alreadyPurchased"));
+        messages.put("bunkerPurchased", config.getString("bunkerPurchased"));
+        messages.put("playerNotExist", config.getString("playerNotExist"));
+        messages.put("visitMsg", config.getString("visitMsg"));
+        messages.put("noBunker", config.getString("noBunker"));
+        messages.put("homeMsg", config.getString("homeMsg"));
+        // Format strings in messages, need command executors for more advanced formatting
+//        for (String message: messages.values()) {
+//            messages.put(message, messages.get(message).replace("%player%", sender.getName()));
+//        }
+        // Load doubles from config
+        doubles.put("x", config.getDouble("x"));
+        doubles.put("y", config.getDouble("y"));
+        doubles.put("z", config.getDouble("z"));
+        doubles.put("spawnX", config.getDouble("spawnX"));
+        doubles.put("spawnY", config.getDouble("spawnY"));
+        doubles.put("spawnZ", config.getDouble("spawnZ"));
+        doubles.put("yaw", config.getDouble("yaw"));
+        doubles.put("pitch", config.getDouble("pitch"));
+        doubles.put("npcId", config.getDouble("npcId"));
+        doubles.put("npcX", config.getDouble("npcCoords.x"));
+        doubles.put("npcY", config.getDouble("npcCoords.y"));
+        doubles.put("npcZ", config.getDouble("npcCoords.z"));
+        doubles.put("npcYaw", config.getDouble("npcCoords.yaw"));
+        doubles.put("npcPitch", config.getDouble("npcCoords.pitch"));
+        // Check if schematic file exists
+        schematicFile = new File(plugin.getDataFolder(), "schematics/bunker.schem");
+        if (!schematicFile.exists()) {
+            if (sender == null)
+                plugin.getLogger().info("No schematic found. Make sure you named it correctly and its placed in schematics/bunker.schem");
+            else
+                sender.sendMessage("No schematic found. Make sure you named it correctly and its placed in schematics/bunker.schem");
+            return true;
+        }
+        // Reload schematic
+        schematic = new Schematic(schematicFile);
+        clipboard = schematic.loadSchematic(schematicFile);
+
+        if (sender == null)
+            plugin.getLogger().info("Configuration reloaded successfully.");
+        else
+            sender.sendMessage("Configuration reloaded successfully.");
+        return true;
+    }
+
     private boolean addNPC(CommandSender sender, World world) {
         // Get config message strings
-        FileConfiguration npcConfig = plugin.getConfig();
-        int npcID = npcConfig.getInt("npcID");
-        double npcX = npcConfig.getDouble("npcCoords.x");
-        double npcY = npcConfig.getDouble("npcCoords.y");
-        double npcZ = npcConfig.getDouble("npcCoords.z");
-        float npcYaw = (float) npcConfig.getDouble("npcCoords.yaw");
-        float npcPitch = (float) npcConfig.getDouble("npcCoords.pitch");
+        int npcID = doubles.get("npcId").intValue();
+        double npcX = doubles.get("npcX");
+        double npcY = doubles.get("npcZ");
+        double npcZ = doubles.get("npcY");
+        float npcYaw = doubles.get("npcYaw").floatValue();
+        float npcPitch = doubles.get("npcPitch").floatValue();
         // Copy the NPC
         NPC npc = CitizensAPI.getNPCRegistry().getById(npcID);
         NPC clone = npc.clone();
@@ -116,10 +170,9 @@ public class BunkerCommand implements CommandExecutor {
 
     private boolean assignBunker(Player buyer) {
         // Get config message strings
-        FileConfiguration msgConfig = plugin.getConfig();
-        String noBunkers = msgConfig.getString("noBunkers"),
-                alreadyPurchased = msgConfig.getString("alreadyPurchased"),
-                bunkerPurchased = msgConfig.getString("bunkerPurchased");
+        String noBunkers = messages.get("noBunkers"),
+                alreadyPurchased = messages.get("alreadyPurchased"),
+                bunkerPurchased = messages.get("bunkerPurchased");
         // Check if the player has enough storage for bunkers and has not already bought one
         ConfigUtil config = new ConfigUtil(plugin, "bunkers.yml");
         int assignedBunkers = config.getConfig().getInt("assignedBunkers");
@@ -142,9 +195,9 @@ public class BunkerCommand implements CommandExecutor {
     }
     private boolean visit(CommandSender sender, String playerName) {
         // Get config message strings
-        FileConfiguration msgConfig = plugin.getConfig();
-        String playerNotExist = msgConfig.getString("playerNotExist"),
-                visitMsg = msgConfig.getString("visitMsg"); // Revisit
+        String playerNotExist = messages.get("playerNotExist"),
+                visitMsg = messages.get("visitMsg"); // Revisit
+        // Format message strings
         playerNotExist = playerNotExist.replace("%player%", playerName);
         visitMsg = visitMsg.replace("%player%", playerName);
         // Check if the player exists
@@ -162,10 +215,8 @@ public class BunkerCommand implements CommandExecutor {
 
     private boolean bunkerHome(@NotNull CommandSender sender) {
         // Get config message strings
-        String noBunker = plugin.getConfig().getString("noBunker");
-        noBunker = noBunker.replace("%player%", sender.getName());
-        String homeMsg = plugin.getConfig().getString("homeMsg");
-        homeMsg = homeMsg.replace("%player%", sender.getName());
+        String noBunker = messages.get("noBunkers");
+        String homeMsg = messages.get("homeMsg");
         // Handle the default case: no arguments or non-reload arguments
         ConfigUtil config = new ConfigUtil(plugin, "bunkers.yml");
         // Check if player has a bunker
@@ -200,12 +251,6 @@ public class BunkerCommand implements CommandExecutor {
     }
 
     private boolean addBunkers(int bunkers, CommandSender sender) {
-        // Check if schematic file exists
-        File schematicFile = new File(plugin.getDataFolder(), "schematics/bunker.schem");
-        if (!schematicFile.exists()) {
-            ((Player) sender).sendMessage("No schematic found. Make sure you named it correctly and its placed in schematics/bunker.schem");
-            return true;
-        }
         // Get UUID and playerID
         Player player = null;
         UUID playerId = null;
@@ -226,28 +271,26 @@ public class BunkerCommand implements CommandExecutor {
         config.save();
         // Create the bunkers on a different world
         for (int i = 0; i < bunkers; i++)
-            createBunkerWorld(sender, "bunker_" + (totalBunkers + i), schematicFile);
+            createBunkerWorld(sender, "bunker_" + (totalBunkers + i));
         sender.sendMessage("Created " + bunkers + " bunkers.");
         return true;
     }
 
-    private void createBunkerWorld(CommandSender sender, String worldName, File schematicFile) {
+    private void createBunkerWorld(CommandSender sender, String worldName) {
         // Get config message strings
-        FileConfiguration coordConfig = plugin.getConfig();
-        int x = coordConfig.getInt("schematicCoords.x");
-        int y = coordConfig.getInt("schematicCoords.y");
-        int z = coordConfig.getInt("schematicCoords.z");
-        double spawnX = coordConfig.getDouble("spawnCoords.x");
-        double spawnY = coordConfig.getDouble("spawnCoords.y");
-        double spawnZ = coordConfig.getDouble("spawnCoords.z");
-        float yaw = (float) coordConfig.getDouble("spawnCoords.yaw");
-        float pitch = (float) coordConfig.getDouble("spawnCoords.pitch");
+        int x = doubles.get("x").intValue();
+        int y = doubles.get("y").intValue();
+        int z = doubles.get("z").intValue();
+        double spawnX = doubles.get("spawnX");
+        double spawnY = doubles.get("spawnY");
+        double spawnZ = doubles.get("spawnZ");
+        float yaw = doubles.get("yaw").floatValue();
+        float pitch = doubles.get("pitch").floatValue();
         // Check if Multiverse-Core is installed
         Plugin multiversePlugin = Bukkit.getPluginManager().getPlugin("Multiverse-Core");
         MultiverseCore multiverseCore = (MultiverseCore) multiversePlugin;
         MVWorldManager worldManager = multiverseCore.getMVWorldManager();
-//         Set the spawn for worldManager
-//         Create the void world
+        // Create the void world
         if (worldManager.getMVWorld(worldName) == null) {
             worldManager.addWorld(
                     worldName, // name of world
@@ -264,16 +307,15 @@ public class BunkerCommand implements CommandExecutor {
         // Add schematic to empty world via multithreading
         UUID playerId = ((Player) sender).getUniqueId();
         Location pasteLocation = new Location(Bukkit.getWorld(worldName), x, y, z);
-        Schematic schematic = new Schematic(schematicFile, pasteLocation);
-        schematic.loadAndPasteSchematic();
-        // Not running anything asynchronously currently
+        schematic.setLocation(pasteLocation);
+        schematic.pasteSchematic(clipboard, pasteLocation);
+        // Not running anything asynchronously currently *may remove*
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
-                // Add schematic file to bunker file
-//                schematic.loadAndPasteSchematic();
+                // Load schematic file
             } finally {
                 // Remove the player from the set after the task is completed
-                sender.sendMessage("Loaded bunker schematics!");
+//                sender.sendMessage("Loaded bunker schematics!");
                 runningTasks.remove(playerId);
             }
                 });

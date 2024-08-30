@@ -29,12 +29,20 @@ public class Schematic {
         this.location = location;
     }
 
+    public Schematic(File file) {
+        this.file = file;
+    }
+
+    public void setLocation(Location location) {
+        this.location = location;
+    }
+
     public void loadAndPasteSchematic() {
         Clipboard clipboard = loadSchematic(file);
         pasteSchematic(clipboard, location);
     }
 
-    private Clipboard loadSchematic(File file) {
+    public Clipboard loadSchematic(File file) {
         Clipboard clipboard;
 
         ClipboardFormat format = ClipboardFormats.findByFile(file);
@@ -48,7 +56,7 @@ public class Schematic {
         return clipboard;
     }
 
-    private void pasteSchematic(Clipboard clipboard, Location location) {
+    public void pasteSchematic(Clipboard clipboard, Location location) {
         World world = BukkitAdapter.adapt(location.getWorld());
         try (EditSession editSession = WorldEdit.getInstance().newEditSession(world)) {
             Operation operation = new ClipboardHolder(clipboard)
