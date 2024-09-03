@@ -69,7 +69,7 @@ public class BunkerCommand implements CommandExecutor {
                     return true;
                 }
             case "reload": // Handle the "reload" argument
-                reload(sender);
+                return reload(sender);
             case "admin": // Create more bunkers using multicore
                 if (args.length == 3 && args[1].equalsIgnoreCase("add")) {
                     return addBunkers(Integer.parseInt(args[2]), sender);
@@ -96,8 +96,11 @@ public class BunkerCommand implements CommandExecutor {
     }
 
     public boolean reload(CommandSender sender) {
+        plugin.saveDefaultConfig();
         plugin.reloadConfig();
         FileConfiguration config = plugin.getConfig();
+        ConfigUtil bunker = new ConfigUtil(plugin, "bunkers.yml");
+        bunker.save();
         // Load messages from config
         messages.put("noBunkers", config.getString("noBunkers"));
         messages.put("alreadyPurchased", config.getString("alreadyPurchased"));
@@ -135,7 +138,7 @@ public class BunkerCommand implements CommandExecutor {
             return true;
         }
         // Reload schematic
-        schematic = new Schematic(schematicFile);
+        schematic = new Schematic(schematicFile, plugin);
         clipboard = schematic.loadSchematic(schematicFile);
 
         if (sender == null)

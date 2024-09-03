@@ -13,7 +13,9 @@ import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardReader;
 import com.sk89q.worldedit.world.World;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.plugin.Plugin;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -23,14 +25,17 @@ public class Schematic {
 
     private File file;
     private Location location;
+    private Plugin plugin;
 
-    public Schematic(File file, Location location) {
+    public Schematic(File file, Location location, Plugin plugin) {
         this.file = file;
         this.location = location;
+        this.plugin = plugin;
     }
 
-    public Schematic(File file) {
+    public Schematic(File file, Plugin plugin) {
         this.file = file;
+        this.plugin = plugin;
     }
 
     public void setLocation(Location location) {
@@ -52,23 +57,43 @@ public class Schematic {
             e.printStackTrace();
             return null;
         }
-        /* use the clipboard here */
+
         return clipboard;
     }
 
+//    public void pasteSchematic(Clipboard clipboard, Location location) {
+//        World world = BukkitAdapter.adapt(location.getWorld());
+//        try (EditSession editSession = WorldEdit.getInstance().newEditSession(world)) {
+//            Operation operation = new ClipboardHolder(clipboard)
+//                    .createPaste(editSession)
+//                    .to(BlockVector3.at(location.getX(), location.getY(), location.getZ()))
+//                    // configure here
+//                    .build();
+//            Operations.complete(operation);
+//        } catch (WorldEditException e) {
+//            e.printStackTrace();
+//        }
+//    }
+
     public void pasteSchematic(Clipboard clipboard, Location location) {
         World world = BukkitAdapter.adapt(location.getWorld());
-        try (EditSession editSession = WorldEdit.getInstance().newEditSession(world)) {
-            Operation operation = new ClipboardHolder(clipboard)
-                    .createPaste(editSession)
-                    .to(BlockVector3.at(location.getX(), location.getY(), location.getZ()))
-                    // configure here
-                    .build();
-            Operations.complete(operation);
-        } catch (WorldEditException e) {
-            e.printStackTrace();
-        }
+
+        // Run the paste operation asynchronously to reduce lag
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            try (EditSession editSession = WorldEdit.getInstance().newEditSession(world)) {
+                editSession.setFastMode(true);  // Enable fast mode for faster pasting
+                Operation operation = new ClipboardHolder(clipboard)
+                        .createPaste(editSession)
+                        .to(BlockVector3.at(location.getX(), location.getY(), location.getZ()))
+                        // .ignoreAirBlocks(true)  // Removed to allow air blocks to be pasted
+                        .build();
+                Operations.complete(operation);
+            } catch (WorldEditException e) {
+                e.printStackTrace();
+            }
+        });
     }
+
 
 
 }
