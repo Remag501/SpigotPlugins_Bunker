@@ -7,9 +7,13 @@ import com.onarandombox.MultiverseCore.MultiverseCore;
 import com.onarandombox.MultiverseCore.api.MVWorldManager;
 import me.remag501.bunker.Bunker;
 import me.remag501.bunker.util.ConfigUtil;
+import me.remag501.bunker.util.VisitRequest;
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.npc.NPC;
 import net.citizensnpcs.api.trait.Trait;
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.GameRule;
 import org.bukkit.World;
@@ -24,11 +28,13 @@ import org.bukkit.Difficulty;
 import org.bukkit.GameMode;
 import org.bukkit.WorldType;
 import org.bukkit.Location;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.bukkit.Bukkit.getLogger;
 
@@ -73,6 +79,12 @@ public class BunkerCommand implements CommandExecutor {
                 }
             case "reload": // Handle the "reload" argument
                 return reload(sender);
+            case "accept":
+                handleVisitResponse((Player) sender, true);
+                return true;
+            case "decline":
+                handleVisitResponse((Player) sender, false);
+                return true;
             case "admin": // Create more bunkers using multicore
                 if (args.length == 3 && args[1].equalsIgnoreCase("add")) {
                     return addBunkers(Integer.parseInt(args[2]), sender);
@@ -200,24 +212,101 @@ public class BunkerCommand implements CommandExecutor {
             return true;
         }
     }
+
     private boolean visit(CommandSender sender, String playerName) {
         // Get config message strings and player name
         String playerNotExist = messages.get("playerNotExist"),
-                visitMsg = messages.get("visitMsg"); // Revisit
+                visitMsg = messages.get("visitMsg"),
+//                requestMsg = messages.get("requestMsg"),
+//                acceptMsg = messages.get("acceptMsg"),
+//                declineMsg = messages.get("declineMsg");
+                requestMsg = "%player% is requesting to visit you. You have 60 seconds to accept! %accept% %decline%",
+                acceptMsg = "Player is visiting your island..",
+                declineMsg = "You have declined the player's visit request..";
+        // Create nbt tags
+        TextComponent acceptButton = new TextComponent("[Accept]");
+        acceptButton.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/bunker accept"));
+
+        TextComponent declineButton = new TextComponent("[Decline]");
+        declineButton.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/bunker decline"));
         // Format message strings
         playerNotExist = playerNotExist.replace("%player%", playerName);
         visitMsg = visitMsg.replace("%player%", playerName);
-        // Check if the player exists
-        ConfigUtil config = new ConfigUtil(plugin, "bunkers.yml");
-        if (!config.getConfig().contains(playerName.toUpperCase())) {
+        requestMsg = requestMsg.replace("%player%", playerName);
+
+        // Add nbt tags to Component Builder to be sent to player
+        String[] parts = requestMsg.split("%accept%|%decline%");
+        ComponentBuilder message = new ComponentBuilder(parts[0])
+                .append(acceptButton)
+                .append(parts.length > 1 ? parts[1] : "")
+                .append(declineButton)
+                .append(parts.length > 2 ? parts[2] : "");
+
+        // Get bunker owner's player object
+        Player bunkerOwner = Bukkit.getPlayerExact(playerName);
+        if (bunkerOwner == null) {
             sender.sendMessage(playerNotExist);
             return true;
         }
-        // Teleport player to their bunker
+
+        // Check if the player owns a bunker
+        ConfigUtil config = new ConfigUtil(plugin, "bunkers.yml");
+        if (!config.getConfig().contains(playerName.toUpperCase())) {
+            sender.sendMessage(playerNotExist); // Will add new message for player not owning a bunker
+            return true;
+        }
+
+        // Store worldName
         String worldName = "bunker_" + config.getConfig().getString(playerName.toUpperCase());
-        sender.sendMessage(visitMsg);
-        teleportPlayer((Player) sender, worldName);
+
+        // Check if there's already a pending visit request
+        Player visitingPlayer = (Player) sender;
+        VisitRequest existingRequest = plugin.getPendingRequests().get(bunkerOwner.getUniqueId());
+//        if (existingRequest != null && existingRequest.getVisitor().equals(visitingPlayer.getUniqueId())) {
+        if (existingRequest != null) {
+            visitingPlayer.sendMessage("You already have a pending visit request. Please wait for a response.");
+            return true;
+        }
+        // Store this request in the map
+        plugin.getPendingRequests().put(bunkerOwner.getUniqueId(), new VisitRequest(visitingPlayer, worldName));
+
+        // Prompt bunker owner to accept or decline the visitor
+        bunkerOwner.spigot().sendMessage(message.create());
+        // Create a new runnable task that will wait for a response
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                // If no response after 60 seconds, decline the request
+                VisitRequest request = plugin.getPendingRequests().remove(bunkerOwner.getUniqueId());
+                if (request != null) {
+//                    bunkerOwner.sendMessage(declineMsg);
+//                    sender.sendMessage("Your visit request has been declined.");
+                    bunkerOwner.sendMessage("The visit request has been declined automatically.");
+                    sender.sendMessage("Your visit request has been declined due to no response.");
+                }
+            }
+        }.runTaskLater(plugin, 1200L); // 60 seconds delay (20 ticks per second)
+
         return true;
+    }
+
+    public void handleVisitResponse(Player bunkerOwner, boolean accept) {
+        String acceptMsg = "Player is visiting your island..",
+                declineMsg = "You have declined the player's visit request..";
+        VisitRequest request = plugin.getPendingRequests().remove(bunkerOwner.getUniqueId());
+        if (request != null) {
+            Player visitor = request.getVisitor();
+            if (accept) {
+                // Teleport the visitor to the bunker
+                visitor.sendMessage("Your visit request has been accepted!");
+                bunkerOwner.sendMessage(acceptMsg);
+                teleportPlayer(visitor, request.getWorldName());
+            } else {
+                // Inform the visitor that the request was declined
+                bunkerOwner.sendMessage(declineMsg);
+                visitor.sendMessage("Your visit request has been declined.");
+            }
+        }
     }
 
     private boolean bunkerHome(@NotNull CommandSender sender) {
