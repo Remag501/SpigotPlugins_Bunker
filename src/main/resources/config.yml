@@ -8,7 +8,7 @@ noBunker: "You don't own a bunker. Use /bunker buy to obtain one"
 playerNotExist: "Player does not exist or have a bunker!"
 visitMsg: "Teleporting you to %player%'s bunker..."
 # Edit the message sent to the player when using /bunker buy
-noBunkers: "Fatal error: Out of storage for bunkers. Contact an admin to help you out!"
+outOfBunkers: "Fatal error: Out of storage for bunkers. Contact an admin to help you out!"
 alreadyPurchased: "You have already purchased a bunker!"
 bunkerPurchased: "You have successfully purchased a bunker!"
 

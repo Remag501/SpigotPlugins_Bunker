@@ -105,12 +105,12 @@ public class BunkerCommand implements CommandExecutor {
         ConfigUtil bunker = new ConfigUtil(plugin, "bunkers.yml");
         bunker.save();
         // Load messages from config
-        messages.put("noBunkers", config.getString("noBunkers"));
+        messages.put("noBunker", config.getString("noBunker"));
+        messages.put("outOfBunkers", config.getString("outOfBunkers"));
         messages.put("alreadyPurchased", config.getString("alreadyPurchased"));
         messages.put("bunkerPurchased", config.getString("bunkerPurchased"));
         messages.put("playerNotExist", config.getString("playerNotExist"));
         messages.put("visitMsg", config.getString("visitMsg"));
-        messages.put("noBunker", config.getString("noBunker"));
         messages.put("homeMsg", config.getString("homeMsg"));
         // Format strings in messages, need command executors for more advanced formatting
 //        for (String message: messages.values()) {
@@ -175,32 +175,33 @@ public class BunkerCommand implements CommandExecutor {
     }
 
     private boolean assignBunker(Player buyer) {
-        // Get config message strings
-        String noBunkers = messages.get("noBunkers"),
+        // Get config message strings and player name
+        String outOfBunkers = messages.get("outOfBunkers"),
                 alreadyPurchased = messages.get("alreadyPurchased"),
-                bunkerPurchased = messages.get("bunkerPurchased");
+                bunkerPurchased = messages.get("bunkerPurchased"),
+                playerName = buyer.getName().toUpperCase();
         // Check if the player has enough storage for bunkers and has not already bought one
         ConfigUtil config = new ConfigUtil(plugin, "bunkers.yml");
         int assignedBunkers = config.getConfig().getInt("assignedBunkers");
         int totalBunkers = config.getConfig().getInt("totalBunkers");
-        if (assignedBunkers == totalBunkers) {
-            buyer.sendMessage(noBunkers);
-            return true;
-        } else if (config.getConfig().contains(buyer.getName())) {
+        if (config.getConfig().contains(playerName)) {
             buyer.sendMessage(alreadyPurchased);
             return true;
-        }
-        else {
-            // Decrease the available bunkers count
+        } else if (assignedBunkers == totalBunkers) {
+            plugin.getLogger().info(playerName + " already has a bunker!");
+            buyer.sendMessage(outOfBunkers);
+            return true;
+        } else {
+            // Increase the assigned bunkers count
             config.getConfig().set("assignedBunkers", assignedBunkers + 1);
-            config.getConfig().set(buyer.getName(), assignedBunkers);
+            config.getConfig().set(playerName, assignedBunkers);
             config.save();
             buyer.sendMessage(bunkerPurchased);
             return true;
         }
     }
     private boolean visit(CommandSender sender, String playerName) {
-        // Get config message strings
+        // Get config message strings and player name
         String playerNotExist = messages.get("playerNotExist"),
                 visitMsg = messages.get("visitMsg"); // Revisit
         // Format message strings
@@ -208,12 +209,12 @@ public class BunkerCommand implements CommandExecutor {
         visitMsg = visitMsg.replace("%player%", playerName);
         // Check if the player exists
         ConfigUtil config = new ConfigUtil(plugin, "bunkers.yml");
-        if (!config.getConfig().contains(playerName)) {
+        if (!config.getConfig().contains(playerName.toUpperCase())) {
             sender.sendMessage(playerNotExist);
             return true;
         }
         // Teleport player to their bunker
-        String worldName = "bunker_" + config.getConfig().getString(playerName);
+        String worldName = "bunker_" + config.getConfig().getString(playerName.toUpperCase());
         sender.sendMessage(visitMsg);
         teleportPlayer((Player) sender, worldName);
         return true;
@@ -221,21 +222,23 @@ public class BunkerCommand implements CommandExecutor {
 
     private boolean bunkerHome(@NotNull CommandSender sender) {
         // Get config message strings
-        String noBunker = messages.get("noBunkers");
+        String noBunker = messages.get("noBunker");
         String homeMsg = messages.get("homeMsg");
         // Handle the default case: no arguments or non-reload arguments
         ConfigUtil config = new ConfigUtil(plugin, "bunkers.yml");
+        // Create player object
+        Player player = (Player) sender;
+        String playerName = player.getName().toUpperCase();
         // Check if player has a bunker
-        if (!config.getConfig().contains(sender.getName())) {
+        if (!config.getConfig().contains(playerName)) {
             sender.sendMessage(noBunker);
             return true;
         }
         // Send player teleport message
-        Player player = (Player) sender;
         player.sendMessage(homeMsg);
         // Teleport player to their bunker
         // Get worldname
-        String worldName = config.getConfig().getString(player.getName());
+        String worldName = config.getConfig().getString(playerName);
         worldName = "bunker_" + worldName;
         teleportPlayer(player, worldName);
         return true;
