@@ -61,39 +61,6 @@ public class Schematic {
         return clipboard;
     }
 
-//    public void pasteSchematic(Clipboard clipboard, Location location) {
-//        World world = BukkitAdapter.adapt(location.getWorld());
-//        try (EditSession editSession = WorldEdit.getInstance().newEditSession(world)) {
-//            Operation operation = new ClipboardHolder(clipboard)
-//                    .createPaste(editSession)
-//                    .to(BlockVector3.at(location.getX(), location.getY(), location.getZ()))
-//                    // configure here
-//                    .build();
-//            Operations.complete(operation);
-//        } catch (WorldEditException e) {
-//            e.printStackTrace();
-//        }
-//    }
-
-//    public void pasteSchematic(Clipboard clipboard, Location location) {
-//        World world = BukkitAdapter.adapt(location.getWorld());
-//        plugin.getLogger().info("Pasting schematic");
-//        // Run the paste operation asynchronously to reduce lag
-//        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-//            try (EditSession editSession = WorldEdit.getInstance().newEditSession(world)) {
-//                editSession.setFastMode(true);  // Enable fast mode for faster pasting
-//                Operation operation = new ClipboardHolder(clipboard)
-//                        .createPaste(editSession)
-//                        .to(BlockVector3.at(location.getX(), location.getY(), location.getZ()))
-//                        // .ignoreAirBlocks(true)  // Removed to allow air blocks to be pasted
-//                        .build();
-//                Operations.complete(operation);
-//            } catch (WorldEditException e) {
-//                e.printStackTrace();
-//            }
-//        });
-//    }
-
     public void pasteSchematic(Clipboard clipboard, Location location) {
         World world = BukkitAdapter.adapt(location.getWorld());
         plugin.getLogger().info("Pasting schematic");
@@ -118,8 +85,4 @@ public class Schematic {
             }
         });
     }
-
-
-
-
 }

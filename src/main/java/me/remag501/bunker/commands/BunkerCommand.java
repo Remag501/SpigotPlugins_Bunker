@@ -11,6 +11,7 @@ import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.npc.NPC;
 import net.citizensnpcs.api.trait.Trait;
 import org.bukkit.Bukkit;
+import org.bukkit.GameRule;
 import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -19,6 +20,8 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.Difficulty;
+import org.bukkit.GameMode;
 import org.bukkit.WorldType;
 import org.bukkit.Location;
 import org.jetbrains.annotations.NotNull;
@@ -330,38 +333,14 @@ public class BunkerCommand implements CommandExecutor {
         mvWorld.setAdjustSpawn(false); // Disable safe teleport for this world
         mvWorld.setSpawnLocation(newSpawn); // multiverse world spawn
         world.setSpawnLocation(newSpawn); // Bukkit world spawn, wont set server spawn unless in main world
+        mvWorld.setDifficulty(Difficulty.PEACEFUL); // Set difficulty to peaceful
+        mvWorld.setGameMode(GameMode.ADVENTURE); // Set gamemode to adventure
+        world.setGameRule(GameRule.DO_MOB_SPAWNING, false); // Turns off mob spawning
         if (!(world.getSpawnLocation().getX() == spawnX && world.getSpawnLocation().getY() == spawnY && world.getSpawnLocation().getZ() == spawnZ))
             sender.sendMessage("Failed to set spawn location for world " + worldName + ". Check your configurtion.yml to adjust coordinates and make sure there are no obstructions, or it is not on air.");
         plugin.getLogger().info("World spawn set to " + newSpawn.toString());
         // Add npc to the bunker
         addNPC(sender, world);
-
-        // Create bunker world in a seperate thread for optimization
-//        if (sender instanceof Player) {
-//            Player player = (Player) sender;
-//            UUID playerId = player.getUniqueId();
-//
-//            // Check if the player already triggered the command
-//            if (runningTasks.contains(playerId)) {
-//                player.sendMessage("The bunker creation is still in progress. Please wait.");
-//                return true;
-//            }
-//            runningTasks.add(playerId);
-            // Create the bunkers
-//            for (int i = 0; i < bunkers; i++) {
-//                // Run the task asynchronously
-//                final int finalI = i;
-//                Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-//                    try {
-//                        // Create bunker worlds with schematic file
-//                        createBunkerWorld(sender, "bunker_" + (totalBunkers + finalI), schematicFile);
-//                    } finally {
-//                        // Remove the player from the set after the task is completed
-//                        runningTasks.remove(playerId);
-//                    }
-//                });
-//            }
-//        }
     }
 
 }
