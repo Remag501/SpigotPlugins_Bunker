@@ -75,24 +75,50 @@ public class Schematic {
 //        }
 //    }
 
+//    public void pasteSchematic(Clipboard clipboard, Location location) {
+//        World world = BukkitAdapter.adapt(location.getWorld());
+//        plugin.getLogger().info("Pasting schematic");
+//        // Run the paste operation asynchronously to reduce lag
+//        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+//            try (EditSession editSession = WorldEdit.getInstance().newEditSession(world)) {
+//                editSession.setFastMode(true);  // Enable fast mode for faster pasting
+//                Operation operation = new ClipboardHolder(clipboard)
+//                        .createPaste(editSession)
+//                        .to(BlockVector3.at(location.getX(), location.getY(), location.getZ()))
+//                        // .ignoreAirBlocks(true)  // Removed to allow air blocks to be pasted
+//                        .build();
+//                Operations.complete(operation);
+//            } catch (WorldEditException e) {
+//                e.printStackTrace();
+//            }
+//        });
+//    }
+
     public void pasteSchematic(Clipboard clipboard, Location location) {
         World world = BukkitAdapter.adapt(location.getWorld());
+        plugin.getLogger().info("Pasting schematic");
 
-        // Run the paste operation asynchronously to reduce lag
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        // Run the entire paste operation on the main thread
+        Bukkit.getScheduler().runTask(plugin, () -> {
             try (EditSession editSession = WorldEdit.getInstance().newEditSession(world)) {
                 editSession.setFastMode(true);  // Enable fast mode for faster pasting
+
+                // Build the paste operation
                 Operation operation = new ClipboardHolder(clipboard)
                         .createPaste(editSession)
                         .to(BlockVector3.at(location.getX(), location.getY(), location.getZ()))
-                        // .ignoreAirBlocks(true)  // Removed to allow air blocks to be pasted
                         .build();
+
+                // Complete the operation
                 Operations.complete(operation);
+
+                plugin.getLogger().info("Pasting schematic completed successfully!");
             } catch (WorldEditException e) {
                 e.printStackTrace();
             }
         });
     }
+
 
 
 
