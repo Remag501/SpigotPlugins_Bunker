@@ -65,6 +65,10 @@ public class BunkerCommand implements CommandExecutor {
         if (args.length == 0) {
             return bunkerHome(sender);
         }
+        // Get config messages
+        String argCommandUsage = messages.get("argCommandUsage");
+        String visitCommandUsage = messages.get("visitCommandUsage");
+        // Handle command arguments
         switch (args[0].toLowerCase()) {
             case "buy": // Allows players to buy a bunker by using the "buy" argument
                 return assignBunker((Player) sender);
@@ -74,7 +78,7 @@ public class BunkerCommand implements CommandExecutor {
                 if (args.length == 2) {
                     return visit(sender, args[1]); // Will need args[1] for the player name
                 } else {
-                    sender.sendMessage("Usage: /bunker visit [player]");
+                    sender.sendMessage(visitCommandUsage);
                     return true;
                 }
             case "reload": // Handle the "reload" argument
@@ -91,7 +95,7 @@ public class BunkerCommand implements CommandExecutor {
                 }
                 break;
             default:
-                sender.sendMessage("Invalid arguments! Use /bunker [buy/home/visit]");
+                sender.sendMessage(argCommandUsage);
                 return true;
         }
         return false;
@@ -117,13 +121,20 @@ public class BunkerCommand implements CommandExecutor {
         ConfigUtil bunker = new ConfigUtil(plugin, "bunkers.yml");
         bunker.save();
         // Load messages from config
+        messages.put("argCommandUsage", config.getString("argCommandUsage"));
+        messages.put("visitCommandUsage", config.getString("visitCommandUsage"));
         messages.put("noBunker", config.getString("noBunker"));
         messages.put("outOfBunkers", config.getString("outOfBunkers"));
         messages.put("alreadyPurchased", config.getString("alreadyPurchased"));
         messages.put("bunkerPurchased", config.getString("bunkerPurchased"));
         messages.put("playerNotExist", config.getString("playerNotExist"));
-        messages.put("visitMsg", config.getString("visitMsg"));
         messages.put("homeMsg", config.getString("homeMsg"));
+        messages.put("pendingVisitRequest", config.getString("pendingVisitRequest"));
+        messages.put("requestMsg", config.getString("requestMsg"));
+        messages.put("acceptRequest", config.getString("acceptRequest"));
+        messages.put("declineRequest", config.getString("declineRequest"));
+        messages.put("allowVisit", config.getString("allowVisit"));
+        messages.put("declineVisit", config.getString("declineVisit"));
         // Format strings in messages, need command executors for more advanced formatting
 //        for (String message: messages.values()) {
 //            messages.put(message, messages.get(message).replace("%player%", sender.getName()));
@@ -216,13 +227,8 @@ public class BunkerCommand implements CommandExecutor {
     private boolean visit(CommandSender sender, String playerName) {
         // Get config message strings and player name
         String playerNotExist = messages.get("playerNotExist"),
-                visitMsg = messages.get("visitMsg"),
-//                requestMsg = messages.get("requestMsg"),
-//                acceptMsg = messages.get("acceptMsg"),
-//                declineMsg = messages.get("declineMsg");
-                requestMsg = "%player% is requesting to visit you. You have 60 seconds to accept! %accept% %decline%",
-                acceptMsg = "Player is visiting your island..",
-                declineMsg = "You have declined the player's visit request..";
+                requestMsg = messages.get("requestMsg"),
+                pendingVisitRequest = messages.get("pendingVisitRequest");
         // Create nbt tags
         TextComponent acceptButton = new TextComponent("[Accept]");
         acceptButton.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/bunker accept"));
@@ -231,7 +237,6 @@ public class BunkerCommand implements CommandExecutor {
         declineButton.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/bunker decline"));
         // Format message strings
         playerNotExist = playerNotExist.replace("%player%", playerName);
-        visitMsg = visitMsg.replace("%player%", playerName);
         requestMsg = requestMsg.replace("%player%", playerName);
 
         // Add nbt tags to Component Builder to be sent to player
@@ -264,7 +269,7 @@ public class BunkerCommand implements CommandExecutor {
         VisitRequest existingRequest = plugin.getPendingRequests().get(bunkerOwner.getUniqueId());
 //        if (existingRequest != null && existingRequest.getVisitor().equals(visitingPlayer.getUniqueId())) {
         if (existingRequest != null) {
-            visitingPlayer.sendMessage("You already have a pending visit request. Please wait for a response.");
+            visitingPlayer.sendMessage(pendingVisitRequest);
             return true;
         }
         // Store this request in the map
@@ -291,20 +296,34 @@ public class BunkerCommand implements CommandExecutor {
     }
 
     public void handleVisitResponse(Player bunkerOwner, boolean accept) {
-        String acceptMsg = "Player is visiting your island..",
-                declineMsg = "You have declined the player's visit request..";
+        // Get config message strings
+        String acceptRequest = messages.get("acceptRequest"),
+                declineRequest = messages.get("declineRequest"),
+                allowVisit = messages.get("allowVisit"),
+                declineVisit = messages.get("declineVisit");
+        // Get the visit request for this bunker owner
         VisitRequest request = plugin.getPendingRequests().remove(bunkerOwner.getUniqueId());
         if (request != null) {
             Player visitor = request.getVisitor();
+            // Format message strings
+            acceptRequest = acceptRequest.replace("%player%", bunkerOwner.getName());
+            acceptRequest = acceptRequest.replace("%visitor%", visitor.getName());
+            declineRequest = declineRequest.replace("%player%", bunkerOwner.getName());
+            declineRequest = declineRequest.replace("%visitor%", visitor.getName());
+            allowVisit = allowVisit.replace("%owner%", bunkerOwner.getName());
+            allowVisit = allowVisit.replace("%player%", visitor.getName());
+            declineVisit = declineVisit.replace("%owner%", bunkerOwner.getName());
+            declineVisit = declineVisit.replace("%player%", visitor.getName());
+            // Send player to bunker if they are accepted
             if (accept) {
                 // Teleport the visitor to the bunker
-                visitor.sendMessage("Your visit request has been accepted!");
-                bunkerOwner.sendMessage(acceptMsg);
+                visitor.sendMessage(allowVisit);
+                bunkerOwner.sendMessage(acceptRequest);
                 teleportPlayer(visitor, request.getWorldName());
             } else {
                 // Inform the visitor that the request was declined
-                bunkerOwner.sendMessage(declineMsg);
-                visitor.sendMessage("Your visit request has been declined.");
+                bunkerOwner.sendMessage(declineRequest);
+                visitor.sendMessage(declineVisit);
             }
         }
     }

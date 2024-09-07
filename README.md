@@ -16,8 +16,10 @@ Dependencies are handled with Maven and are expected to be provided:
 - voidGen (Optional/Compiled)
 
 Future Plans V1.2:
-- optimize bunker admin add, by running each world each asynchronously
-- visit player confirmation
-- world customization (peaceful, adventure, etc..)
-- Case insensitive player visitation and bunker data
-- WorldGuard V1.3? (optional)
+- optimize bunker admin add, by running each world each asynchronously *Done*
+- visit player confirmation *Done, not yet customizable with config*
+- world customization (peaceful, adventure, etc..) *Done, not yet customizable with config*
+- Case insensitive player visitation and bunker data *Done*
+- WorldGuard V1.3? (optional) *May be omitted*
+- bunker admin update (automatically updates bunkers without manually removing and adding)
+- bunker admin reset (removes the bunkers along the worlds and npcs. Comes with confirmation)

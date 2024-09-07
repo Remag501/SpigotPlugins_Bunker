@@ -16,8 +16,7 @@ depend:
   - WorldEdit
   - Multiverse-Core
   - Citizens
+  - VoidGen
 
 softdepend:
-  - Vault
   - PlaceholderAPI
-  - VoidGen
