@@ -85,4 +85,8 @@ public class Schematic {
             }
         });
     }
+
+    public File getFile() {
+        return this.file;
+    }
 }

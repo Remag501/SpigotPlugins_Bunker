@@ -1,16 +1,14 @@
 package me.remag501.bunker;
 
 import me.remag501.bunker.commands.BunkerCommand;
+import me.remag501.bunker.commands.BunkerCommandOld;
 import me.remag501.bunker.util.ConfigUtil;
 import me.remag501.bunker.util.VisitRequest;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-
-import static me.clip.placeholderapi.PlaceholderAPIPlugin.getServerVersion;
 
 public final class Bunker extends JavaPlugin {
 
@@ -27,7 +25,6 @@ public final class Bunker extends JavaPlugin {
         ConfigUtil config = new ConfigUtil(this, "bunkers.yml");
         // Reload configuration
         BunkerCommand command = new BunkerCommand(this);
-        command.reload(null);
         getCommand("bunker").setExecutor(command);
         getLogger().info("Bunker has been enabled!");
 
