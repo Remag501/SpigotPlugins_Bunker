@@ -1,9 +1,8 @@
 package me.remag501.bunker;
 
 import me.remag501.bunker.commands.BunkerCommand;
-import me.remag501.bunker.commands.BunkerCommandOld;
+//import me.remag501.bunker.commands.BunkerCommandOld;
 import me.remag501.bunker.util.ConfigUtil;
-import me.remag501.bunker.util.VisitRequest;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Map;
@@ -11,12 +10,6 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class Bunker extends JavaPlugin {
-
-    private Map<UUID, VisitRequest> pendingRequests = new ConcurrentHashMap<>();
-
-    public Map<UUID, VisitRequest> getPendingRequests() {
-        return pendingRequests;
-    }
 
     @Override
     public void onEnable() {

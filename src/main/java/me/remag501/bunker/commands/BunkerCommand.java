@@ -15,16 +15,14 @@ import java.util.UUID;
 public class BunkerCommand implements CommandExecutor {
     private final Bunker plugin;
     private final ConfigManager configManager;
-    private final BunkerManager bunkerManager;
     private final VisitRequestManager visitRequestManager;
     private final BunkerCreationManager bunkerCreationManager;
 
     public BunkerCommand(Bunker plugin) {
         this.plugin = plugin;
         this.configManager = new ConfigManager(plugin);
-        this.bunkerManager = new BunkerManager(plugin);
         this.visitRequestManager = new VisitRequestManager(plugin);
-        this.bunkerCreationManager = new BunkerCreationManager(plugin, bunkerManager, configManager);
+        this.bunkerCreationManager = new BunkerCreationManager(plugin, configManager);
     }
 
     @Override
@@ -39,11 +37,11 @@ public class BunkerCommand implements CommandExecutor {
 
         if (args.length == 0 || args[0].equalsIgnoreCase("home")) {
             // Teleport to own bunker
-            if (!bunkerManager.hasBunker(playerName)) {
+            if (!bunkerCreationManager.hasBunker(playerName)) {
                 player.sendMessage(configManager.getMessage("noBunker"));
                 return true;
             }
-            String worldName = bunkerManager.getWorldName(playerName);
+            String worldName = bunkerCreationManager.getWorldName(playerName);
             World bunkerWorld = plugin.getServer().getWorld(worldName);
             if (bunkerWorld == null) {
                 player.sendMessage("Bunker world not found!");
@@ -58,11 +56,11 @@ public class BunkerCommand implements CommandExecutor {
 
         switch (args[0].toLowerCase()) {
             case "buy":
-                if (bunkerManager.hasBunker(playerName)) {
+                if (bunkerCreationManager.hasBunker(playerName)) {
                     player.sendMessage(configManager.getMessage("alreadyOwnBunker"));
                     return true;
                 }
-                if (bunkerManager.assignBunker(playerName)) {
+                if (bunkerCreationManager.assignBunker(playerName)) {
                     player.sendMessage(configManager.getMessage("bunkerPurchased"));
                 } else {
                     player.sendMessage(configManager.getMessage("outOfBunkers"));
@@ -75,7 +73,7 @@ public class BunkerCommand implements CommandExecutor {
                     return true;
                 }
                 String targetName = args[1];
-                if (!bunkerManager.hasBunker(targetName)) {
+                if (!bunkerCreationManager.hasBunker(targetName)) {
                     player.sendMessage(configManager.getMessage("noBunker"));
                     return true;
                 }
@@ -92,7 +90,7 @@ public class BunkerCommand implements CommandExecutor {
                     return true;
                 }
 
-                visitRequestManager.addRequest(targetUUID, new VisitRequest(targetPlayer, "bunker_" + this.bunkerManager.getWorldName(player.getName())));
+                visitRequestManager.addRequest(player.getUniqueId(), targetPlayer, bunkerCreationManager.getWorldName(playerName));
                 player.sendMessage("Visit request sent to " + targetName + ".");
                 if (targetPlayer != null) {
                     targetPlayer.sendMessage(player.getName() + " wants to visit your bunker! Use /bunker accept or /bunker decline.");
@@ -104,11 +102,10 @@ public class BunkerCommand implements CommandExecutor {
                     player.sendMessage("You have no pending visit requests.");
                     return true;
                 }
-                VisitRequest request = visitRequestManager.removeRequest(player.getUniqueId());
-                Player requester = Bukkit.getPlayer(request.getVisitor().getUniqueId());
+                Player requester = visitRequestManager.getPendingRequest(player.getUniqueId());
                 if (requester != null) {
                     // Teleport visitor to bunker owner
-                    String ownerWorldName = bunkerManager.getWorldName(playerName);
+                    String ownerWorldName = bunkerCreationManager.getWorldName(playerName);
                     World ownerWorld = plugin.getServer().getWorld(ownerWorldName);
                     if (ownerWorld != null) {
                         Location spawn = ownerWorld.getSpawnLocation();
