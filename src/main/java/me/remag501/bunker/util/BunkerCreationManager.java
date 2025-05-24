@@ -9,6 +9,7 @@ import org.bukkit.*;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -83,20 +84,23 @@ public class BunkerCreationManager {
         int oldTotal = getTotalBunkers();
         setTotalBunkers(oldTotal + count);
 
-        for (int i = 0; i < count; i++) {
-            String worldName = "bunker_" + (oldTotal + i);
-//            createBunkerWorld(worldName);
-            Bukkit.getScheduler().runTask(plugin, () -> createBunkerWorld(worldName));
-        }
-
-        sender.sendMessage("Created " + count + " bunkers.");
-        runningTasks.remove(playerId);
-
-//        plugin.getServer().getScheduler().runTask(plugin, () -> {
-//        });
-//
-//        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-//        });
+        // Create bunkers on main thread with delay in between each creation
+        int delayBetweenWorlds = 40; // 2 seconds per world
+        new BukkitRunnable() {
+            int i = 0;
+            @Override
+            public void run() {
+                if (i >= count) {
+                    sender.sendMessage("Created " + count + " bunkers.");
+                    runningTasks.remove(playerId);
+                    cancel();
+                    return;
+                }
+                String worldName = "bunker_" + (oldTotal + i);
+                createBunkerWorld(worldName);
+                i++;
+            }
+        }.runTaskTimer(plugin, 0L, delayBetweenWorlds);
 
         return true;
     }
@@ -143,15 +147,29 @@ public class BunkerCreationManager {
         mvWorld.setGameMode(GameMode.ADVENTURE);
         world.setGameRule(GameRule.DO_MOB_SPAWNING, false);
 
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            // Check world is created?
-            // Paste in schematic async
-            Location pasteLocation = new Location(Bukkit.getWorld(worldName), x, y, z);
-            Schematic schematic = configManager.getSchematic();
-            Clipboard clipboard = schematic.loadSchematic(schematic.getFile());
-            schematic.setLocation(pasteLocation);
-            schematic.pasteSchematic(clipboard, pasteLocation);
-        });
+        // Paste schematic async with a timeout
+        int[] attempts = {0}; // must be effectively final for use in lambda
+        int maxAttempts = 100;
+
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                World world = Bukkit.getWorld(worldName);
+                if (world != null) {
+                    this.cancel();
+                    plugin.getServer().getScheduler().runTask(plugin, () -> {
+                        Location pasteLocation = new Location(world, x, y, z);
+                        Schematic schematic = configManager.getSchematic();
+                        Clipboard clipboard = schematic.loadSchematic(schematic.getFile());
+                        schematic.setLocation(pasteLocation);
+                        schematic.pasteSchematic(clipboard, pasteLocation);
+                    });
+                } else if (++attempts[0] >= maxAttempts) {
+                    this.cancel();
+                    plugin.getLogger().warning("World " + worldName + " did not load in time. Paste aborted.");
+                }
+            }
+        }.runTaskTimerAsynchronously(plugin, 0L, 20L); // Checks every second
 
         // Check world spawn was set correctly
         if (!(world.getSpawnLocation().getX() == spawnX && world.getSpawnLocation().getY() == spawnY && world.getSpawnLocation().getZ() == spawnZ)) {
