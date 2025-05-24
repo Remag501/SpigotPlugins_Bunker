@@ -83,17 +83,20 @@ public class BunkerCreationManager {
         int oldTotal = getTotalBunkers();
         setTotalBunkers(oldTotal + count);
 
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            for (int i = 0; i < count; i++) {
-                String worldName = "bunker_" + (oldTotal + i);
-                createBunkerWorld(worldName);
-            }
+        for (int i = 0; i < count; i++) {
+            String worldName = "bunker_" + (oldTotal + i);
+//            createBunkerWorld(worldName);
+            Bukkit.getScheduler().runTask(plugin, () -> createBunkerWorld(worldName));
+        }
 
-            plugin.getServer().getScheduler().runTask(plugin, () -> {
-                sender.sendMessage("Created " + count + " bunkers.");
-                runningTasks.remove(playerId);
-            });
-        });
+        sender.sendMessage("Created " + count + " bunkers.");
+        runningTasks.remove(playerId);
+
+//        plugin.getServer().getScheduler().runTask(plugin, () -> {
+//        });
+//
+//        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+//        });
 
         return true;
     }
@@ -129,15 +132,9 @@ public class BunkerCreationManager {
             return;
         }
 
-        Location pasteLocation = new Location(Bukkit.getWorld(worldName), x, y, z);
-        Schematic schematic = configManager.getSchematic();
-        Clipboard clipboard = schematic.loadSchematic(schematic.getFile());
-        schematic.setLocation(pasteLocation);
-        schematic.pasteSchematic(clipboard, pasteLocation);
-
+        // Set world attributes from config
         Location newSpawn = new Location(Bukkit.getWorld(worldName), spawnX, spawnY, spawnZ, yaw, pitch);
         World world = Bukkit.getWorld(worldName);
-
         MultiverseWorld mvWorld = worldManager.getMVWorld(world);
         mvWorld.setAdjustSpawn(false);
         mvWorld.setSpawnLocation(newSpawn);
@@ -146,12 +143,23 @@ public class BunkerCreationManager {
         mvWorld.setGameMode(GameMode.ADVENTURE);
         world.setGameRule(GameRule.DO_MOB_SPAWNING, false);
 
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            // Check world is created?
+            // Paste in schematic async
+            Location pasteLocation = new Location(Bukkit.getWorld(worldName), x, y, z);
+            Schematic schematic = configManager.getSchematic();
+            Clipboard clipboard = schematic.loadSchematic(schematic.getFile());
+            schematic.setLocation(pasteLocation);
+            schematic.pasteSchematic(clipboard, pasteLocation);
+        });
+
+        // Check world spawn was set correctly
         if (!(world.getSpawnLocation().getX() == spawnX && world.getSpawnLocation().getY() == spawnY && world.getSpawnLocation().getZ() == spawnZ)) {
             plugin.getLogger().info("Failed to set spawn location for world " + worldName + ". Check configuration.");
         }
-
         plugin.getLogger().info("World spawn set to " + newSpawn.toString());
 
+        // Add NPC sync since citizens requires it
         NPCManager.addNPC(plugin, world, configManager);
     }
 }
