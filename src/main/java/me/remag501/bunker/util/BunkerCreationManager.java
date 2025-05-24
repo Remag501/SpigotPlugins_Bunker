@@ -111,15 +111,6 @@ public class BunkerCreationManager {
 
         BunkerInstance bunkerInstance = configManager.getBunkerInstance("main");
 
-//        int x = (int) configManager.getDouble("x");
-//        int y = (int) configManager.getDouble("y");
-//        int z = (int) configManager.getDouble("z");
-//        double spawnX = configManager.getDouble("spawnX");
-//        double spawnY = configManager.getDouble("spawnY");
-//        double spawnZ = configManager.getDouble("spawnZ");
-//        float yaw = (float) configManager.getDouble("yaw");
-//        float pitch = (float) configManager.getDouble("pitch");
-
         Plugin multiversePlugin = Bukkit.getPluginManager().getPlugin("Multiverse-Core");
         MultiverseCore multiverseCore = (MultiverseCore) multiversePlugin;
         MVWorldManager worldManager = multiverseCore.getMVWorldManager();
@@ -184,5 +175,28 @@ public class BunkerCreationManager {
 
         // Add NPC sync since citizens requires it
         NPCManager.addNPC(plugin, world, bunkerInstance);
+    }
+
+    public boolean upgradeBunker(World world, String bunkerLevel) {
+        // Get the BunkerInstance for the world
+        BunkerInstance bunkerInstance = configManager.getBunkerInstance(bunkerLevel);
+        if (bunkerInstance == null) {
+            Bukkit.getLogger().warning("No bunker instance found for world: " + world.getName());
+            return false;
+        }
+
+        // Get the paste location and paste the upgraded schematic
+        Location pasteLocation = bunkerInstance.getSchematicLocation();
+        pasteLocation.setWorld(world);
+        Schematic schematic = bunkerInstance.getSchematic();
+        Clipboard clipboard = schematic.loadSchematic(schematic.getFile());
+        schematic.setLocation(pasteLocation);
+        schematic.pasteSchematic(clipboard, pasteLocation);
+
+        // Add NPC
+        NPCManager.addNPC(plugin, world, bunkerInstance);
+
+        Bukkit.getLogger().info("Bunker in world " + world.getName() + " upgraded to level " + bunkerLevel + ".");
+        return true;
     }
 }

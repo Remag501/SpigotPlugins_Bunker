@@ -3,6 +3,7 @@ package me.remag501.bunker.commands;
 import me.remag501.bunker.Bunker;
 import me.remag501.bunker.util.*;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.command.Command;
@@ -50,7 +51,7 @@ public class BunkerCommand implements CommandExecutor {
             // Teleport logic, e.g., to spawn or configured coords
             Location loc = bunkerWorld.getSpawnLocation();
             player.teleport(loc);
-            player.sendMessage(configManager.getMessage("bunkerTeleported"));
+            player.sendMessage(configManager.getMessage("homeMsg"));
             return true;
         }
 
@@ -65,6 +66,30 @@ public class BunkerCommand implements CommandExecutor {
                 } else {
                     player.sendMessage(configManager.getMessage("outOfBunkers"));
                 }
+                return true;
+
+            case "upgrade":
+                if (args.length < 2) {
+                    player.sendMessage(ChatColor.RED + "Usage: /bunker upgrade <level>");
+                    return true;
+                }
+                if (!bunkerCreationManager.hasBunker(playerName)) {
+                    player.sendMessage(configManager.getMessage("noBunkerOwned"));
+                    return true;
+                }
+
+                String level = args[1];
+                String bunkerName = bunkerCreationManager.getWorldName(playerName);
+                String playerWorldName = player.getWorld().getName();
+                if (!playerWorldName.equals(bunkerName) && !playerWorldName.equals("bunker_preview")) {
+                    player.sendMessage(ChatColor.RED + "You need to be in your bunker to upgrade it!");
+                    return true;
+                }
+
+                if (bunkerCreationManager.upgradeBunker(Bukkit.getWorld(bunkerName), level))
+                    player.sendMessage(ChatColor.GREEN + "Your bunker has gotten the upgrade " + level + "!");
+                else
+                    player.sendMessage(ChatColor.RED + "The upgrade " + level + " does not exist!");
                 return true;
 
             case "visit":
@@ -154,6 +179,8 @@ public class BunkerCommand implements CommandExecutor {
                 // Delegate bunker creation to BunkerCreationManager
                 bunkerCreationManager.addBunkers(number, sender);
                 return true;
+
+
 
             default:
                 player.sendMessage(configManager.getMessage("argCommandUsage"));
