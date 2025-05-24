@@ -14,6 +14,10 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 public class NPCManager {
     public static boolean addNPC(Bunker plugin, World world, BunkerInstance bunkerInstance) {
         int npcID = bunkerInstance.getNpcId();
+        if (npcID == -1) {// No NPC for this instance
+//            plugin.getLogger().info("No NPC for this instance");
+            return false;
+        }
 
         // Check NPC exists
         NPC npc = CitizensAPI.getNPCRegistry().getById(npcID);

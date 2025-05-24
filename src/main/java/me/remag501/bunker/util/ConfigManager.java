@@ -78,7 +78,7 @@ public class ConfigManager {
             Location schematicLoc = getLocationFromSection(section.getConfigurationSection("schematicCoords"), null);
             Location spawnLoc = getLocationFromSection(section.getConfigurationSection("spawnCoords"), null);
             Location npcLoc = getLocationFromSection(section.getConfigurationSection("npcCoords"), null);
-            int npcId = section.getInt("npcId", 0);
+            int npcId = section.getInt("npcId", -1);
             // Save to map of bunker instances
             BunkerInstance instance = new BunkerInstance(bunkerKey, schematicLoc, spawnLoc, npcLoc, schematic, npcId);
             bunkerInstances.put(bunkerKey, instance);
