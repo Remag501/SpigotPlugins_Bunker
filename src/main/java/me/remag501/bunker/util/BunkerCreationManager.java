@@ -5,6 +5,7 @@ import com.onarandombox.MultiverseCore.api.MVWorldManager;
 import com.onarandombox.MultiverseCore.api.MultiverseWorld;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import me.remag501.bunker.Bunker;
+import me.remag501.bunker.BunkerInstance;
 import org.bukkit.*;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -108,14 +109,16 @@ public class BunkerCreationManager {
     private void createBunkerWorld(String worldName) {
         plugin.getLogger().info("Creating bunker world: " + worldName);
 
-        int x = (int) configManager.getDouble("x");
-        int y = (int) configManager.getDouble("y");
-        int z = (int) configManager.getDouble("z");
-        double spawnX = configManager.getDouble("spawnX");
-        double spawnY = configManager.getDouble("spawnY");
-        double spawnZ = configManager.getDouble("spawnZ");
-        float yaw = (float) configManager.getDouble("yaw");
-        float pitch = (float) configManager.getDouble("pitch");
+        BunkerInstance bunkerInstance = configManager.getBunkerInstance("main");
+
+//        int x = (int) configManager.getDouble("x");
+//        int y = (int) configManager.getDouble("y");
+//        int z = (int) configManager.getDouble("z");
+//        double spawnX = configManager.getDouble("spawnX");
+//        double spawnY = configManager.getDouble("spawnY");
+//        double spawnZ = configManager.getDouble("spawnZ");
+//        float yaw = (float) configManager.getDouble("yaw");
+//        float pitch = (float) configManager.getDouble("pitch");
 
         Plugin multiversePlugin = Bukkit.getPluginManager().getPlugin("Multiverse-Core");
         MultiverseCore multiverseCore = (MultiverseCore) multiversePlugin;
@@ -137,7 +140,7 @@ public class BunkerCreationManager {
         }
 
         // Set world attributes from config
-        Location newSpawn = new Location(Bukkit.getWorld(worldName), spawnX, spawnY, spawnZ, yaw, pitch);
+        Location newSpawn = bunkerInstance.getSpawnLocation();
         World world = Bukkit.getWorld(worldName);
         MultiverseWorld mvWorld = worldManager.getMVWorld(world);
         mvWorld.setAdjustSpawn(false);
@@ -158,8 +161,9 @@ public class BunkerCreationManager {
                 if (world != null) {
                     this.cancel();
                     plugin.getServer().getScheduler().runTask(plugin, () -> {
-                        Location pasteLocation = new Location(world, x, y, z);
-                        Schematic schematic = configManager.getSchematic();
+                        Location pasteLocation = bunkerInstance.getSchematicLocation();
+                        pasteLocation.setWorld(world);
+                        Schematic schematic = bunkerInstance.getSchematic();
                         Clipboard clipboard = schematic.loadSchematic(schematic.getFile());
                         schematic.setLocation(pasteLocation);
                         schematic.pasteSchematic(clipboard, pasteLocation);
@@ -172,12 +176,13 @@ public class BunkerCreationManager {
         }.runTaskTimerAsynchronously(plugin, 0L, 20L); // Checks every second
 
         // Check world spawn was set correctly
-        if (!(world.getSpawnLocation().getX() == spawnX && world.getSpawnLocation().getY() == spawnY && world.getSpawnLocation().getZ() == spawnZ)) {
+        Location spawnLoc = bunkerInstance.getSpawnLocation();
+        if (!(world.getSpawnLocation().getX() == spawnLoc.getX() && world.getSpawnLocation().getY() == spawnLoc.getY() && world.getSpawnLocation().getZ() == spawnLoc.getZ())) {
             plugin.getLogger().info("Failed to set spawn location for world " + worldName + ". Check configuration.");
-        }
-        plugin.getLogger().info("World spawn set to " + newSpawn.toString());
+        } else
+            plugin.getLogger().info("World spawn set to " + newSpawn.toString());
 
         // Add NPC sync since citizens requires it
-        NPCManager.addNPC(plugin, world, configManager);
+        NPCManager.addNPC(plugin, world, bunkerInstance);
     }
 }

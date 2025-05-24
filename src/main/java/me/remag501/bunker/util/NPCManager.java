@@ -1,6 +1,7 @@
 package me.remag501.bunker.util;
 
 import me.remag501.bunker.Bunker;
+import me.remag501.bunker.BunkerInstance;
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.npc.NPC;
 import org.bukkit.Location;
@@ -11,21 +12,25 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.event.player.PlayerTeleportEvent;
 
 public class NPCManager {
-    public static boolean addNPC(Bunker plugin, World world, ConfigManager configManager) {
-        int npcID = (int) configManager.getDouble("npcId");
-        double npcX = configManager.getDouble("npcX");
-        double npcY = configManager.getDouble("npcY");
-        double npcZ = configManager.getDouble("npcZ");
-        float npcYaw = (float) configManager.getDouble("npcYaw");
-        float npcPitch = (float) configManager.getDouble("npcPitch");
+    public static boolean addNPC(Bunker plugin, World world, BunkerInstance bunkerInstance) {
+        int npcID = bunkerInstance.getNpcId();
+//        double npcX = configManager.getDouble("npcX");
+//        double npcY = configManager.getDouble("npcY");
+//        double npcZ = configManager.getDouble("npcZ");
+//        float npcYaw = (float) configManager.getDouble("npcYaw");
+//        float npcPitch = (float) configManager.getDouble("npcPitch");
 
         // Check NPC exists
         NPC npc = CitizensAPI.getNPCRegistry().getById(npcID);
-        if (npc == null) return false;
+        if (npc == null) {
+            plugin.getLogger().info("Could not load in npc!" + npcID);
+            return false;
+        }
 
         // Get location for npc and barrier block
-        Location loc = new Location(world, npcX, npcY, npcZ, npcYaw, npcPitch);
-        Location barrierLoc = new Location(world, npcX, npcY-1, npcZ, npcYaw, npcPitch);
+        Location loc = bunkerInstance.getNpcLocation();
+        loc.setWorld(world);
+        Location barrierLoc = loc.add(0, -1, 0);
 
         // Place block beneath NPC
         Block block = world.getBlockAt(barrierLoc);

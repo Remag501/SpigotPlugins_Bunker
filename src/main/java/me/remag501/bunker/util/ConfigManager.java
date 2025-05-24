@@ -1,6 +1,9 @@
 package me.remag501.bunker.util;
 
 import me.remag501.bunker.Bunker;
+import me.remag501.bunker.BunkerInstance;
+import org.bukkit.Location;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import java.io.File;
@@ -12,6 +15,8 @@ public class ConfigManager {
     private Map<String, String> messages = new HashMap<>();
     private Map<String, Double> doubles = new HashMap<>();
     Schematic schematic = null;
+
+    private final Map<String, BunkerInstance> bunkerInstances = new HashMap<>();
 
     public ConfigManager(Bunker plugin) {
         this.plugin = plugin;
@@ -55,14 +60,39 @@ public class ConfigManager {
         doubles.put("npcYaw", config.getDouble("npcCoords.yaw"));
         doubles.put("npcPitch", config.getDouble("npcCoords.pitch"));
 
-        // Check if schematic file exists
-        File schematicFile = new File(plugin.getDataFolder(), "schematics/bunker.schem");
-        if (!schematicFile.exists()) {
-                plugin.getLogger().info("No schematic found. Make sure you named it correctly and its placed in schematics/bunker.schem");
-                return;
+        // Load bunker instances
+        for (String bunkerKey : config.getKeys(false)) {
+            ConfigurationSection section = config.getConfigurationSection(bunkerKey);
+            if (section == null) continue;
+
+            String schemName = section.getString("schematicName", "bunker.schem");
+            // Save schematic for bunker level
+            File schematicFile = new File(plugin.getDataFolder(), "schematics/" + schemName);
+            if (!schematicFile.exists()) {
+                plugin.getLogger().warning("Schematic not found for " + bunkerKey + ": " + schematicFile.getName());
+                continue;
+            }
+
+            Schematic schematic = new Schematic(schematicFile, plugin);
+            // Get locations for bunker level with helper function
+            Location schematicLoc = getLocationFromSection(section.getConfigurationSection("schematicCoords"), null);
+            Location spawnLoc = getLocationFromSection(section.getConfigurationSection("spawnCoords"), null);
+            Location npcLoc = getLocationFromSection(section.getConfigurationSection("npcCoords"), null);
+            int npcId = section.getInt("npcId", 0);
+            // Save to map of bunker instances
+            BunkerInstance instance = new BunkerInstance(bunkerKey, schematicLoc, spawnLoc, npcLoc, schematic, npcId);
+            bunkerInstances.put(bunkerKey, instance);
         }
-        // Reload schematic
-        schematic = new Schematic(schematicFile, plugin);
+    }
+
+    private Location getLocationFromSection(ConfigurationSection sec, org.bukkit.World world) {
+        if (sec == null) return null;
+        double x = sec.getDouble("x");
+        double y = sec.getDouble("y");
+        double z = sec.getDouble("z");
+        float yaw = (float) sec.getDouble("yaw", 0f);
+        float pitch = (float) sec.getDouble("pitch", 0f);
+        return new Location(world, x, y, z, yaw, pitch);
     }
 
     public String getMessage(String key) {
@@ -75,6 +105,10 @@ public class ConfigManager {
 
     public Schematic getSchematic() {
         return schematic;
+    }
+
+    public BunkerInstance getBunkerInstance(String name) {
+        return bunkerInstances.get(name);
     }
 }
 
