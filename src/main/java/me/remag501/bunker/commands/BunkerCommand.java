@@ -86,10 +86,10 @@ public class BunkerCommand implements CommandExecutor {
                     return true;
                 }
 
-                if (bunkerCreationManager.upgradeBunker(Bukkit.getWorld(bunkerName), level))
+                if (bunkerCreationManager.upgradeBunker(playerName, level))
                     player.sendMessage(ChatColor.GREEN + "Your bunker has gotten the upgrade " + level + "!");
                 else
-                    player.sendMessage(ChatColor.RED + "The upgrade " + level + " does not exist!");
+                    player.sendMessage(ChatColor.RED + "You already have the upgrade " + level + " or it does not exist!");
                 return true;
 
             case "visit":
@@ -156,6 +156,7 @@ public class BunkerCommand implements CommandExecutor {
 
             case "reload":
                 configManager.reload();
+                bunkerCreationManager.reloadBunkerConfig();
                 player.sendMessage("Bunker config reloaded.");
                 return true;
 

@@ -13,6 +13,7 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -31,7 +32,16 @@ public class BunkerCreationManager {
     // ---------------- Bunker Assignment & Config Access ----------------
 
     public boolean hasBunker(String playerName) {
-        return bunkerConfig.getConfig().contains(playerName.toUpperCase());
+        return bunkerConfig.getConfig().contains(playerName.toUpperCase() + ".id");
+    }
+
+    public void reloadBunkerConfig() {
+        bunkerConfig.reload(); // reloads from disk
+    }
+
+    public boolean hasBunkerUpgrade(String playerName, String level) {
+        List<String> upgrades = bunkerConfig.getConfig().getStringList(playerName + ".upgrades");
+        return upgrades.contains(level);
     }
 
     public int getAssignedBunkers() {
@@ -47,6 +57,22 @@ public class BunkerCreationManager {
         bunkerConfig.save();
     }
 
+    public boolean upgradeBunker(String playerName, String bunkerLevel) {
+        // Update bunker config to show upgrades
+        List<String> upgrades = bunkerConfig.getConfig().getStringList(playerName.toUpperCase() + ".upgrades");
+        plugin.getLogger().info(upgrades.toString());
+        if (!upgrades.contains(bunkerLevel)) {
+            upgrades.add(bunkerLevel);
+            bunkerConfig.getConfig().set(playerName.toUpperCase() + ".upgrades", upgrades);
+            bunkerConfig.save();
+        } else
+            return false;
+        // Get world and upgrade bunker
+        String worldName = getWorldName(playerName);
+        World world = Bukkit.getWorld(worldName);
+        return upgradeBunkerWorld(world, bunkerLevel);
+    }
+
     public boolean assignBunker(String playerName) {
         if (hasBunker(playerName)) return false;
 
@@ -55,13 +81,13 @@ public class BunkerCreationManager {
         if (assigned >= total) return false;
 
         bunkerConfig.getConfig().set("assignedBunkers", assigned + 1);
-        bunkerConfig.getConfig().set(playerName.toUpperCase(), assigned);
+        bunkerConfig.getConfig().set(playerName.toUpperCase() + ".id", assigned);
         bunkerConfig.save();
         return true;
     }
 
     public String getWorldName(String playerName) {
-        return "bunker_" + bunkerConfig.getConfig().getString(playerName.toUpperCase());
+        return "bunker_" + bunkerConfig.getConfig().getString(playerName.toUpperCase()+".id");
     }
 
     // ---------------- Bunker World Creation ----------------
@@ -177,7 +203,7 @@ public class BunkerCreationManager {
         NPCManager.addNPC(plugin, world, bunkerInstance);
     }
 
-    public boolean upgradeBunker(World world, String bunkerLevel) {
+    public boolean upgradeBunkerWorld(World world, String bunkerLevel) {
         // Get the BunkerInstance for the world
         BunkerInstance bunkerInstance = configManager.getBunkerInstance(bunkerLevel);
         if (bunkerInstance == null) {
