@@ -136,7 +136,6 @@ public class BunkerCreationManager {
         plugin.getLogger().info("Creating bunker world: " + worldName);
 
         BunkerInstance bunkerInstance = configManager.getBunkerInstance("main");
-        plugin.getLogger().info("Test: " + bunkerInstance.getSpawnLocation());
 
         Plugin multiversePlugin = Bukkit.getPluginManager().getPlugin("Multiverse-Core");
         MultiverseCore multiverseCore = (MultiverseCore) multiversePlugin;

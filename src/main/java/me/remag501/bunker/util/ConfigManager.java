@@ -12,11 +12,9 @@ import java.util.Map;
 
 public class ConfigManager {
     private final Bunker plugin;
-    private Map<String, String> messages = new HashMap<>();
-    private Map<String, Double> doubles = new HashMap<>();
-    Schematic schematic = null;
-
-    private final Map<String, BunkerInstance> bunkerInstances = new HashMap<>();
+    private static Map<String, String> messages = new HashMap<>();
+    private static Map<String, Double> doubles = new HashMap<>();
+    private static final Map<String, BunkerInstance> bunkerInstances = new HashMap<>();
 
     public ConfigManager(Bunker plugin) {
         this.plugin = plugin;
@@ -101,10 +99,6 @@ public class ConfigManager {
 
     public double getDouble(String key) {
         return doubles.getOrDefault(key, 0.0);
-    }
-
-    public Schematic getSchematic() {
-        return schematic;
     }
 
     public BunkerInstance getBunkerInstance(String name) {
