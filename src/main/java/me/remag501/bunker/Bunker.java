@@ -1,5 +1,6 @@
 package me.remag501.bunker;
 
+import me.remag501.bunker.commands.BunkerAdminCommand;
 import me.remag501.bunker.commands.BunkerCommand;
 //import me.remag501.bunker.commands.BunkerCommandOld;
 import me.remag501.bunker.util.ConfigUtil;
@@ -19,6 +20,8 @@ public final class Bunker extends JavaPlugin {
         // Reload configuration
         BunkerCommand command = new BunkerCommand(this);
         getCommand("bunker").setExecutor(command);
+        BunkerAdminCommand adminCommand = new BunkerAdminCommand(this);
+        getCommand("bunkeradmin").setExecutor(adminCommand);
         getLogger().info("Bunker has been enabled!");
 
     }

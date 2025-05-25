@@ -7,10 +7,17 @@ description: "Custom plugin for battlegrounds that allows creation and managemen
 
 commands:
   bunker:
-    description: 'Manage bunkers'
-    usage: '/bunker <command> [args]'
+    description: 'Use bunker'
+    usage: '/bunker [args]'
     aliases: ['b']
     permission: 'bunker.command'
+  bunkeradmin:
+    description: 'Manage bunkers as admin'
+    usage: '/bunkeradmin [args]'
+    aliases: ['ba']
+    permission: 'bunkeradmin.command'
+
+
 
 depend:
   - WorldEdit
