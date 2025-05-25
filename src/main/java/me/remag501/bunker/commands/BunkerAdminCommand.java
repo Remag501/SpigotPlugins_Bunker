@@ -1,6 +1,7 @@
 package me.remag501.bunker.commands;
 
 import me.remag501.bunker.Bunker;
+import me.remag501.bunker.util.AdminManager;
 import me.remag501.bunker.util.BunkerCreationManager;
 import me.remag501.bunker.util.ConfigManager;
 import me.remag501.bunker.util.VisitRequestManager;
@@ -19,12 +20,14 @@ public class BunkerAdminCommand implements CommandExecutor {
     private final ConfigManager configManager;
     private final VisitRequestManager visitRequestManager;
     private final BunkerCreationManager bunkerCreationManager;
+    private final AdminManager adminManager;
 
     public BunkerAdminCommand(Bunker plugin) {
         this.plugin = plugin;
         this.configManager = new ConfigManager(plugin);
         this.visitRequestManager = new VisitRequestManager(plugin);
         this.bunkerCreationManager = new BunkerCreationManager(plugin, configManager);
+        this.adminManager = new AdminManager(plugin, bunkerCreationManager);
     }
 
     @Override
@@ -68,7 +71,7 @@ public class BunkerAdminCommand implements CommandExecutor {
 
             case "preview":
                 // Load or teleport the admin to a preview world, you can modify this logic
-                player.sendMessage(ChatColor.GRAY + "Preview not added yet!");
+                adminManager.previewBunker(player);
 //                World previewWorld = Bukkit.getWorld("bunker_preview");
 //                if (previewWorld == null) {
 //                    player.sendMessage(ChatColor.RED + "Preview world not found.");

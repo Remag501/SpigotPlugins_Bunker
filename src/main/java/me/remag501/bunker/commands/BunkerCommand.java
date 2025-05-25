@@ -160,29 +160,6 @@ public class BunkerCommand implements CommandExecutor {
                 player.sendMessage("Bunker config reloaded.");
                 return true;
 
-            case "admin":
-                if (args.length < 3 || !args[1].equalsIgnoreCase("add")) {
-                    player.sendMessage("Usage: /bunker admin add <number>");
-                    return true;
-                }
-                int number;
-                try {
-                    number = Integer.parseInt(args[2]);
-                    if (number <= 0) {
-                        player.sendMessage("Number must be positive.");
-                        return true;
-                    }
-                } catch (NumberFormatException e) {
-                    player.sendMessage("Invalid number.");
-                    return true;
-                }
-
-                // Delegate bunker creation to BunkerCreationManager
-                bunkerCreationManager.addBunkers(number, sender);
-                return true;
-
-
-
             default:
                 player.sendMessage(configManager.getMessage("argCommandUsage"));
                 return true;
