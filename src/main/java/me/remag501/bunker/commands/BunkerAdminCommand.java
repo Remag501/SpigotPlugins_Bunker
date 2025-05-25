@@ -111,26 +111,25 @@ public class BunkerAdminCommand implements CommandExecutor {
                     return true;
                 }
 
-//                if (!bunkerCreationManager.hasBunker(playerName)) {
-//                    player.sendMessage(ChatColor.RED + "You do not own a bunker.");
-//                    return true;
-//                }
-//
-//                String level = args[1];
+                String level = args[1];
 //                String worldName = bunkerCreationManager.getWorldName(playerName);
-//                String currentWorld = player.getWorld().getName();
-//
-//                if (!currentWorld.equals(worldName) && !currentWorld.equals("bunker_preview")) {
-//                    player.sendMessage(ChatColor.RED + "You must be in your bunker or preview to upgrade.");
-//                    return true;
-//                }
-//
-//                if (bunkerCreationManager.upgradeBunker(playerName, level)) {
-//                    player.sendMessage(ChatColor.GREEN + "Bunker upgraded with: " + level);
-//                } else {
-//                    player.sendMessage(ChatColor.RED + "Upgrade failed. Already applied or invalid.");
-//                }
-                player.sendMessage(ChatColor.GRAY + "Upgrade not added yet");
+                String currentWorld = player.getWorld().getName();
+                World previewWorld = Bukkit.getWorld("bunker_preview");
+                if (previewWorld == null) {
+                    player.sendMessage(ChatColor.RED + "Preview world does not exist.");
+                    return true;
+                }
+
+                if (!currentWorld.equals("bunker_preview")) {
+                    player.sendMessage(ChatColor.RED + "You must be in preview bunker to upgrade.");
+                    return true;
+                }
+
+                if (bunkerCreationManager.upgradeBunkerWorld(previewWorld, level)) {
+                    player.sendMessage(ChatColor.GREEN + "Bunker upgraded with: " + level);
+                } else {
+                    player.sendMessage(ChatColor.RED + "Upgrade does not exist.");
+                }
                 return true;
 
             default:

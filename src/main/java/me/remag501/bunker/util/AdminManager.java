@@ -90,13 +90,8 @@ public class AdminManager {
         }.runTaskTimer(plugin, 0L, 0L);
     }
 
-//    private void deleteWorldFolder(File path) throws IOException {
-//        if (!path.exists()) return;
+//    public void updateBunker() {
 //
-//        Files.walk(path.toPath())
-//                .sorted(Comparator.reverseOrder())
-//                .map(Path::toFile)
-//                .forEach(File::delete);
 //    }
 
 }
