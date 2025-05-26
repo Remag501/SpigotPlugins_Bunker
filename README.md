@@ -7,19 +7,29 @@ This plugin uses the /bunker command with arguments to work
 - /bunker or /bunker home to visit your bunker
 - /bunker buy to purchase a bunker and have it assigned to you
 - /bunker visit [player] to visit a player's bunker
-* For admins only, be careful using this command as it can create lag*
-- /bunker admin add [bunkerCount] to increase the total available bunkers on the server. More bunkers are more resources/lag.
+- /bunker upgrade <level> allows player to add upgrades to their bunker
+- /bunker reload will reload config and bunker.yml (may be moved to admin in future)
+
+For admins only, be careful using this command as it can create lag
+- /bunkeradmin add [bunkerCount] to increase the total available bunkers on the server. More bunkers are more resources/lag.
+- /bunkeradmin preview allows you to preview bunker from config
+- /bunkeradmin migrate will change existing bunkers to existing settings *not implemented*
+- /bunkeradmin upgrade <level> applies upgrade to the preview world
 
 Dependencies are handled with Maven and are expected to be provided:
 - WorldEdit
 - Multiverse-Core
 - voidGen (Optional/Compiled)
 
-Future Plans V1.2:
-- optimize bunker admin add, by running each world each asynchronously *Done*
-- visit player confirmation *Done, not yet customizable with config*
-- world customization (peaceful, adventure, etc..) *Done, not yet customizable with config*
-- Case insensitive player visitation and bunker data *Done*
-- WorldGuard V1.3? (optional) *May be omitted*
-- bunker admin update (automatically updates bunkers without manually removing and adding)
-- bunker admin reset (removes the bunkers along the worlds and npcs. Comes with confirmation)
+v 1.3 Patch Notes:
+- Internals reworked heavily
+- Levels can now be added to config
+- Bunkeradmin is a seperate command from bunker admin
+- Players can now use preview their bunker before creating them
+
+Future plans and bugs:
+- Fix bug with citizens not teleporting on other servers
+- Visit argument does not use config or prevent visitors from opening chest
+- Migrate argument is not implemented
+- Add Kgenerators to bunker levels (Priority)
+- Add Holograms to bunker levels
