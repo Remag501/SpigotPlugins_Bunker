@@ -1,8 +1,8 @@
-package me.remag501.bunker.util;
+package me.remag501.bunker.managers;
 
-import com.onarandombox.MultiverseCore.MVWorld;
 import com.onarandombox.MultiverseCore.MultiverseCore;
 import com.onarandombox.MultiverseCore.api.MVWorldManager;
+import me.remag501.bunker.core.BunkerInstance;
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.npc.NPC;
 import net.citizensnpcs.api.npc.NPCRegistry;
@@ -14,11 +14,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 
 public class AdminManager {
@@ -73,6 +69,10 @@ public class AdminManager {
                 if (complete) {
                     World newWorld = Bukkit.getWorld("bunker_preview");
                     if (newWorld != null) {
+                        // Add generators in player name
+                        GeneratorManager.createGenerator(player, newWorld, bunkerCreationManager.getConfigManger().getBunkerInstance("main"));
+
+                        // Teleport player
                         Location spawn = newWorld.getSpawnLocation();
                         player.teleport(spawn);
                         player.sendMessage(ChatColor.GREEN + "Teleported to preview bunker.");

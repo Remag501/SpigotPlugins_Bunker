@@ -1,11 +1,13 @@
-package me.remag501.bunker.util;
+package me.remag501.bunker.managers;
 
 import com.onarandombox.MultiverseCore.MultiverseCore;
 import com.onarandombox.MultiverseCore.api.MVWorldManager;
 import com.onarandombox.MultiverseCore.api.MultiverseWorld;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
 import me.remag501.bunker.Bunker;
-import me.remag501.bunker.BunkerInstance;
+import me.remag501.bunker.core.BunkerInstance;
+import me.remag501.bunker.util.ConfigUtil;
+import me.remag501.bunker.util.SchematicUtil;
 import org.bukkit.*;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -57,8 +59,13 @@ public class BunkerCreationManager {
         bunkerConfig.save();
     }
 
-    public boolean upgradeBunker(String playerName, String bunkerLevel) {
+    public ConfigManager getConfigManger() {
+        return configManager;
+    }
+
+    public boolean upgradeBunker(Player player, String bunkerLevel) {
         // Update bunker config to show upgrades
+        String playerName = player.getName();
         List<String> upgrades = bunkerConfig.getConfig().getStringList(playerName.toUpperCase() + ".upgrades");
         plugin.getLogger().info(upgrades.toString());
         if (!upgrades.contains(bunkerLevel)) {
@@ -70,19 +77,28 @@ public class BunkerCreationManager {
         // Get world and upgrade bunker
         String worldName = getWorldName(playerName);
         World world = Bukkit.getWorld(worldName);
-        return upgradeBunkerWorld(world, bunkerLevel);
+        return upgradeBunkerWorld(world, bunkerLevel, player);
     }
 
     public boolean assignBunker(String playerName) {
+        // Check if own bunker or if enough exists
         if (hasBunker(playerName)) return false;
-
+        // Enough should exist
         int assigned = getAssignedBunkers();
         int total = getTotalBunkers();
+        Bukkit.getPlayer(playerName).sendMessage("reached " + assigned + " " + total);
         if (assigned >= total) return false;
 
+        // Update the config
         bunkerConfig.getConfig().set("assignedBunkers", assigned + 1);
         bunkerConfig.getConfig().set(playerName.toUpperCase() + ".id", assigned);
         bunkerConfig.save();
+
+        // Add generators to bunker (needs to belong to player)
+        BunkerInstance bunkerInstance = configManager.getBunkerInstance("main");
+        World world = Bukkit.getWorld(getWorldName(playerName));
+        GeneratorManager.createGenerator(Bukkit.getPlayer(playerName), world, bunkerInstance);
+
         return true;
     }
 
@@ -180,7 +196,7 @@ public class BunkerCreationManager {
                     plugin.getServer().getScheduler().runTask(plugin, () -> {
                         Location pasteLocation = bunkerInstance.getSchematicLocation();
                         pasteLocation.setWorld(world);
-                        Schematic schematic = bunkerInstance.getSchematic();
+                        SchematicUtil schematic = bunkerInstance.getSchematic();
                         Clipboard clipboard = schematic.loadSchematic(schematic.getFile());
                         schematic.setLocation(pasteLocation);
                         schematic.pasteSchematic(clipboard, pasteLocation);
@@ -203,7 +219,7 @@ public class BunkerCreationManager {
         NPCManager.addNPC(plugin, world, bunkerInstance);
     }
 
-    public boolean upgradeBunkerWorld(World world, String bunkerLevel) {
+    public boolean upgradeBunkerWorld(World world, String bunkerLevel, Player player) {
         // Get the BunkerInstance for the world
         BunkerInstance bunkerInstance = configManager.getBunkerInstance(bunkerLevel);
         if (bunkerInstance == null) {
@@ -214,13 +230,16 @@ public class BunkerCreationManager {
         // Get the paste location and paste the upgraded schematic
         Location pasteLocation = bunkerInstance.getSchematicLocation();
         pasteLocation.setWorld(world);
-        Schematic schematic = bunkerInstance.getSchematic();
+        SchematicUtil schematic = bunkerInstance.getSchematic();
         Clipboard clipboard = schematic.loadSchematic(schematic.getFile());
         schematic.setLocation(pasteLocation);
         schematic.pasteSchematic(clipboard, pasteLocation);
 
         // Add NPC
         NPCManager.addNPC(plugin, world, bunkerInstance);
+
+        // Add generator
+        GeneratorManager.createGenerator(player, world, bunkerInstance);
 
         Bukkit.getLogger().info("Bunker in world " + world.getName() + " upgraded to level " + bunkerLevel + ".");
         return true;

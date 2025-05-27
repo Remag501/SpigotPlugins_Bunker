@@ -1,7 +1,8 @@
-package me.remag501.bunker.util;
+package me.remag501.bunker.managers;
 
 import me.remag501.bunker.Bunker;
-import me.remag501.bunker.BunkerInstance;
+import me.remag501.bunker.core.BunkerInstance;
+import me.remag501.bunker.util.SchematicUtil;
 import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -71,14 +72,17 @@ public class ConfigManager {
                 continue;
             }
 
-            Schematic schematic = new Schematic(schematicFile, plugin);
+            SchematicUtil schematic = new SchematicUtil(schematicFile, plugin);
+            String generatorType = section.getString("generatorType", null);
             // Get locations for bunker level with helper function
             Location schematicLoc = getLocationFromSection(section.getConfigurationSection("schematicCoords"), null);
             Location spawnLoc = getLocationFromSection(section.getConfigurationSection("spawnCoords"), null);
             Location npcLoc = getLocationFromSection(section.getConfigurationSection("npcCoords"), null);
+            Location generatorLoc = getLocationFromSection(section.getConfigurationSection("generatorCoords"), null);
             int npcId = section.getInt("npcId", -1);
+            int generatorLevel = section.getInt("generatorLevel", 1);
             // Save to map of bunker instances
-            BunkerInstance instance = new BunkerInstance(bunkerKey, schematicLoc, spawnLoc, npcLoc, schematic, npcId);
+            BunkerInstance instance = new BunkerInstance(bunkerKey, schematicLoc, spawnLoc, npcLoc, schematic, generatorLoc, generatorType, npcId, generatorLevel);
             bunkerInstances.put(bunkerKey, instance);
         }
     }

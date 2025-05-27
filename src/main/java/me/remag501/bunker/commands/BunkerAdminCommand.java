@@ -1,10 +1,10 @@
 package me.remag501.bunker.commands;
 
 import me.remag501.bunker.Bunker;
-import me.remag501.bunker.util.AdminManager;
-import me.remag501.bunker.util.BunkerCreationManager;
-import me.remag501.bunker.util.ConfigManager;
-import me.remag501.bunker.util.VisitRequestManager;
+import me.remag501.bunker.managers.AdminManager;
+import me.remag501.bunker.managers.BunkerCreationManager;
+import me.remag501.bunker.managers.ConfigManager;
+import me.remag501.bunker.managers.VisitRequestManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.World;
@@ -12,7 +12,6 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
 
 public class BunkerAdminCommand implements CommandExecutor {
 
@@ -125,7 +124,7 @@ public class BunkerAdminCommand implements CommandExecutor {
                     return true;
                 }
 
-                if (bunkerCreationManager.upgradeBunkerWorld(previewWorld, level)) {
+                if (bunkerCreationManager.upgradeBunkerWorld(previewWorld, level, player)) {
                     player.sendMessage(ChatColor.GREEN + "Bunker upgraded with: " + level);
                 } else {
                     player.sendMessage(ChatColor.RED + "Upgrade does not exist.");

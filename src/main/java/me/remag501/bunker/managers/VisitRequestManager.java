@@ -1,4 +1,4 @@
-package me.remag501.bunker.util;
+package me.remag501.bunker.managers;
 
 import me.remag501.bunker.Bunker;
 import org.bukkit.entity.Player;

@@ -1,7 +1,9 @@
 package me.remag501.bunker.commands;
 
 import me.remag501.bunker.Bunker;
-import me.remag501.bunker.util.*;
+import me.remag501.bunker.managers.BunkerCreationManager;
+import me.remag501.bunker.managers.ConfigManager;
+import me.remag501.bunker.managers.VisitRequestManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -86,7 +88,7 @@ public class BunkerCommand implements CommandExecutor {
                     return true;
                 }
 
-                if (bunkerCreationManager.upgradeBunker(playerName, level))
+                if (bunkerCreationManager.upgradeBunker(player, level))
                     player.sendMessage(ChatColor.GREEN + "Your bunker has gotten the upgrade " + level + "!");
                 else
                     player.sendMessage(ChatColor.RED + "You already have the upgrade " + level + " or it does not exist!");

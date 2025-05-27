@@ -21,19 +21,19 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 
-public class Schematic {
+public class SchematicUtil {
 
     private File file;
     private Location location;
     private Plugin plugin;
 
-    public Schematic(File file, Location location, Plugin plugin) {
+    public SchematicUtil(File file, Location location, Plugin plugin) {
         this.file = file;
         this.location = location;
         this.plugin = plugin;
     }
 
-    public Schematic(File file, Plugin plugin) {
+    public SchematicUtil(File file, Plugin plugin) {
         this.file = file;
         this.plugin = plugin;
     }

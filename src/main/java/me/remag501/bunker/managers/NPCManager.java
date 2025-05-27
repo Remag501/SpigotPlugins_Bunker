@@ -1,14 +1,13 @@
-package me.remag501.bunker.util;
+package me.remag501.bunker.managers;
 
 import me.remag501.bunker.Bunker;
-import me.remag501.bunker.BunkerInstance;
+import me.remag501.bunker.core.BunkerInstance;
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.npc.NPC;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.block.data.BlockData;
 import org.bukkit.event.player.PlayerTeleportEvent;
 
 public class NPCManager {

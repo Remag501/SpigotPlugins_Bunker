@@ -25,23 +25,27 @@ bunkerPurchased: "You have successfully purchased a bunker!"
 # schematics can be found in bunker/schematics, you have to create the folder if it doesn't exist.
 schematicName: "bunker.schem"
 # Schematic coordinate location
-schematicCoords:
-  x: 0
-  y: 0
-  z: 0
-spawnCoords:
-  x: 0.0
-  y: 0.0
-  z: 0.0
-  yaw: 0.0
-  pitch: 0.0
-npcID: 0
-npcCoords:
-  x: 0.0
-  y: 0.0
-  z: 0.0
-  yaw: 0.0
-  pitch: 0.0
-# Server properties not implemented
-gameMode: "adventure"
-difficulty: "peaceful"
+main:
+  schematicCoords:
+    x: 0
+    y: 0
+    z: 0
+  spawnCoords:
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    yaw: 0.0
+    pitch: 0.0
+  npcID: 0
+  npcCoords:
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    yaw: 0.0
+    pitch: 0.0
+  generatorType: "stone"
+  generatorLevel: 1
+  generatorCoords:
+    x: 0.0
+    y: 0.0
+    z: 0.0
