@@ -217,6 +217,10 @@ public class BunkerCreationManager {
 
         // Add NPC sync since citizens requires it
         NPCManager.addNPC(plugin, world, bunkerInstance);
+
+        // Add hologram to world
+        HologramManager.addHologram(bunkerInstance, world);
+
     }
 
     public boolean upgradeBunkerWorld(World world, String bunkerLevel, Player player) {
@@ -240,6 +244,9 @@ public class BunkerCreationManager {
 
         // Add generator
         GeneratorManager.createGenerator(player, world, bunkerInstance);
+
+        // Add hologram to world
+        HologramManager.addHologram(bunkerInstance, world);
 
         Bukkit.getLogger().info("Bunker in world " + world.getName() + " upgraded to level " + bunkerLevel + ".");
         return true;

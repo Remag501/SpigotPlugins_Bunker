@@ -2,6 +2,8 @@ package me.remag501.bunker.managers;
 
 import com.onarandombox.MultiverseCore.MultiverseCore;
 import com.onarandombox.MultiverseCore.api.MVWorldManager;
+import eu.decentsoftware.holograms.api.DHAPI;
+import eu.decentsoftware.holograms.api.holograms.Hologram;
 import me.remag501.bunker.core.BunkerInstance;
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.npc.NPC;
@@ -12,6 +14,7 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.ArrayList;
@@ -46,6 +49,12 @@ public class AdminManager {
                 npc.despawn();
                 npc.destroy();
             }
+            // Delete all holograms in a world
+//            for (Hologram hologram : DHAPI..getHologramManager().getHolograms().values()) {
+//                if (hologram.getLocation().getWorld().equals(world)) {
+//                    hologram.delete(); // Removes the hologram from both memory and config
+//                }
+//            }
 
             // Delete world via multiverse core
             MultiverseCore core = (MultiverseCore) Bukkit.getPluginManager().getPlugin("Multiverse-Core");

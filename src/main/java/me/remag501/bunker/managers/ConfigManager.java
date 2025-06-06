@@ -74,15 +74,16 @@ public class ConfigManager {
 
             SchematicUtil schematic = new SchematicUtil(schematicFile, plugin);
             String generatorType = section.getString("generatorType", null);
+            String hologramType = section.getString("hologramType", null);
             // Get locations for bunker level with helper function
             Location schematicLoc = getLocationFromSection(section.getConfigurationSection("schematicCoords"), null);
             Location spawnLoc = getLocationFromSection(section.getConfigurationSection("spawnCoords"), null);
             Location npcLoc = getLocationFromSection(section.getConfigurationSection("npcCoords"), null);
             Location generatorLoc = getLocationFromSection(section.getConfigurationSection("generatorCoords"), null);
+            Location hologramLocation = getLocationFromSection(section.getConfigurationSection("hologramCoords"), null);
             int npcId = section.getInt("npcId", -1);
-            int generatorLevel = section.getInt("generatorLevel", 1);
             // Save to map of bunker instances
-            BunkerInstance instance = new BunkerInstance(bunkerKey, schematicLoc, spawnLoc, npcLoc, schematic, generatorLoc, generatorType, npcId, generatorLevel);
+            BunkerInstance instance = new BunkerInstance(bunkerKey, schematicLoc, spawnLoc, npcLoc, schematic, generatorLoc, generatorType, npcId, hologramType, hologramLocation);
             bunkerInstances.put(bunkerKey, instance);
         }
     }

@@ -24,6 +24,8 @@ depend:
   - Multiverse-Core
   - Citizens
   - VoidGen
+  - DecentHolograms
+  - KGenerators
 
 softdepend:
   - PlaceholderAPI
