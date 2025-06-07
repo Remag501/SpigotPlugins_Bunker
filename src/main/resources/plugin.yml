@@ -26,6 +26,7 @@ depend:
   - VoidGen
   - DecentHolograms
   - KGenerators
+  - WorldGuard
 
 softdepend:
   - PlaceholderAPI

@@ -3,7 +3,15 @@ package me.remag501.bunker.managers;
 import com.onarandombox.MultiverseCore.MultiverseCore;
 import com.onarandombox.MultiverseCore.api.MVWorldManager;
 import com.onarandombox.MultiverseCore.api.MultiverseWorld;
+import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
+import com.sk89q.worldedit.math.BlockVector3;
+import com.sk89q.worldguard.WorldGuard;
+import com.sk89q.worldguard.protection.flags.StateFlag;
+import com.sk89q.worldguard.protection.managers.RegionManager;
+import com.sk89q.worldguard.protection.regions.ProtectedCuboidRegion;
+import com.sk89q.worldguard.protection.regions.ProtectedRegion;
+import com.sk89q.worldguard.protection.regions.RegionContainer;
 import me.remag501.bunker.Bunker;
 import me.remag501.bunker.core.BunkerInstance;
 import me.remag501.bunker.util.ConfigUtil;
@@ -180,8 +188,40 @@ public class BunkerCreationManager {
         mvWorld.setSpawnLocation(newSpawn);
         world.setSpawnLocation(newSpawn);
         mvWorld.setDifficulty(Difficulty.PEACEFUL);
-        mvWorld.setGameMode(GameMode.ADVENTURE);
+        mvWorld.setGameMode(GameMode.SURVIVAL);
         world.setGameRule(GameRule.DO_MOB_SPAWNING, false);
+        world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, false);
+        world.setGameRule(GameRule.DO_WEATHER_CYCLE, false);
+
+        // Setup WorldGuard flags
+        try {
+            RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
+            RegionManager regionManager = container.get(BukkitAdapter.adapt(world));
+
+            if (regionManager == null) {
+                plugin.getLogger().warning("RegionManager is null for world " + worldName);
+                return;
+            }
+
+            ProtectedRegion globalRegion = regionManager.getRegion("__global__");
+            if (globalRegion == null) {
+                plugin.getLogger().warning("Global region '__global__' not found in world " + worldName);
+                return;
+            }
+
+            // Custom flags
+            StateFlag interactFlag = (StateFlag) WorldGuard.getInstance().getFlagRegistry().get("kgenerators-interact");
+            StateFlag pickupFlag = (StateFlag) WorldGuard.getInstance().getFlagRegistry().get("kgenerators-pick-up");
+            StateFlag breakFlag = (StateFlag) WorldGuard.getInstance().getFlagRegistry().get("kgenerators-only-gen-break");
+
+            if (interactFlag != null) globalRegion.setFlag(interactFlag, StateFlag.State.ALLOW);
+            if (pickupFlag != null) globalRegion.setFlag(pickupFlag, StateFlag.State.DENY);
+            if (breakFlag != null) globalRegion.setFlag(breakFlag, StateFlag.State.ALLOW);
+
+            plugin.getLogger().info("Global WorldGuard flags set for world '" + worldName + "'.");
+        } catch (Exception e) {
+            plugin.getLogger().warning("Failed to set global WorldGuard flags for world " + worldName + ": " + e.getMessage());
+        }
 
         // Paste schematic
         SchematicManager.addSchematic(plugin, bunkerInstance, worldName);
