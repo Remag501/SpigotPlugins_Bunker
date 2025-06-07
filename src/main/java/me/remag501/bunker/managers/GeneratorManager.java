@@ -19,22 +19,38 @@ import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
+import java.util.List;
+
 public class GeneratorManager {
 
     public static void createGenerator(Player player, World world, BunkerInstance bunkerInstance) {
+        List<BunkerInstance.GeneratorInfo> generators = bunkerInstance.getGenerators();
+        if (generators == null || generators.isEmpty()) return;
 
-//        if (bunkerInstance.getGeneratorType() == null)
-//            return;
-//
-//        Location l = bunkerInstance.getGeneratorLocation();
-//        l.setWorld(world);
-//
-//        GeneratorLocation gl = new GeneratorLocation(-1, Main.getGenerators().get(bunkerInstance.getGeneratorType()), l,
-//                Main.getPlacedGenerators().new ChunkInfo(l.getChunk()),
-//                Main.getPlayers().getPlayer(player.getName()), null);
-//
-//        gl.placeGenerator(player, true);
+        for (BunkerInstance.GeneratorInfo info : generators) {
+            String type = info.type;
+            Location loc = info.location;
+            loc.setWorld(world);
 
+            Generator generator = Main.getGenerators().get(type);
+            if (generator == null) {
+                Bukkit.getLogger().warning("Generator type '" + type + "' not found.");
+                continue;
+            }
+
+            GeneratorLocation genLoc = new GeneratorLocation(
+                    -1,
+                    generator,
+                    loc,
+                    Main.getPlacedGenerators().new ChunkInfo(loc.getChunk()),
+                    Main.getPlayers().getPlayer(player.getName()),
+                    null
+            );
+
+            genLoc.placeGenerator(player, true);
+            Bukkit.getLogger().info("Placed generator '" + type + "' at " + loc);
+        }
     }
+
 
 }
