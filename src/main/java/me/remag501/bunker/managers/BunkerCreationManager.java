@@ -173,7 +173,7 @@ public class BunkerCreationManager {
         }
 
         // Set world attributes from config
-        Location newSpawn = bunkerInstance.getSpawnLocation();
+        Location newSpawn = ConfigManager.getSpawnLocation();
         World world = Bukkit.getWorld(worldName);
         MultiverseWorld mvWorld = worldManager.getMVWorld(world);
         mvWorld.setAdjustSpawn(false);
@@ -183,33 +183,11 @@ public class BunkerCreationManager {
         mvWorld.setGameMode(GameMode.ADVENTURE);
         world.setGameRule(GameRule.DO_MOB_SPAWNING, false);
 
-        // Paste schematic async with a timeout
-        int[] attempts = {0}; // must be effectively final for use in lambda
-        int maxAttempts = 100;
-
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                World world = Bukkit.getWorld(worldName);
-                if (world != null) {
-                    this.cancel();
-                    plugin.getServer().getScheduler().runTask(plugin, () -> {
-                        Location pasteLocation = bunkerInstance.getSchematicLocation();
-                        pasteLocation.setWorld(world);
-                        SchematicUtil schematic = bunkerInstance.getSchematic();
-                        Clipboard clipboard = schematic.loadSchematic(schematic.getFile());
-                        schematic.setLocation(pasteLocation);
-                        schematic.pasteSchematic(clipboard, pasteLocation);
-                    });
-                } else if (++attempts[0] >= maxAttempts) {
-                    this.cancel();
-                    plugin.getLogger().warning("World " + worldName + " did not load in time. Paste aborted.");
-                }
-            }
-        }.runTaskTimerAsynchronously(plugin, 0L, 20L); // Checks every second
+        // Paste schematic
+        SchematicManager.addSchematic(plugin, bunkerInstance, worldName);
 
         // Check world spawn was set correctly
-        Location spawnLoc = bunkerInstance.getSpawnLocation();
+        Location spawnLoc = ConfigManager.getSpawnLocation();
         if (!(world.getSpawnLocation().getX() == spawnLoc.getX() && world.getSpawnLocation().getY() == spawnLoc.getY() && world.getSpawnLocation().getZ() == spawnLoc.getZ())) {
             plugin.getLogger().info("Failed to set spawn location for world " + worldName + ". Check configuration.");
         } else
@@ -232,12 +210,13 @@ public class BunkerCreationManager {
         }
 
         // Get the paste location and paste the upgraded schematic
-        Location pasteLocation = bunkerInstance.getSchematicLocation();
-        pasteLocation.setWorld(world);
-        SchematicUtil schematic = bunkerInstance.getSchematic();
-        Clipboard clipboard = schematic.loadSchematic(schematic.getFile());
-        schematic.setLocation(pasteLocation);
-        schematic.pasteSchematic(clipboard, pasteLocation);
+//        Location pasteLocation = bunkerInstance.getSchematicLocation();
+//        pasteLocation.setWorld(world);
+//        SchematicUtil schematic = bunkerInstance.getSchematic();
+//        Clipboard clipboard = schematic.loadSchematic(schematic.getFile());
+//        schematic.setLocation(pasteLocation);
+//        schematic.pasteSchematic(clipboard, pasteLocation);
+        SchematicManager.addSchematic(plugin, bunkerInstance, world.getName());
 
         // Add NPC
         NPCManager.addNPC(plugin, world, bunkerInstance);

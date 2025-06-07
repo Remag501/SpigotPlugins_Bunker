@@ -8,14 +8,18 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class ConfigManager {
     private final Bunker plugin;
     private static Map<String, String> messages = new HashMap<>();
     private static Map<String, Double> doubles = new HashMap<>();
     private static final Map<String, BunkerInstance> bunkerInstances = new HashMap<>();
+    private static Location spawnLocation = null;
 
     public ConfigManager(Bunker plugin) {
         this.plugin = plugin;
@@ -59,34 +63,89 @@ public class ConfigManager {
         doubles.put("npcYaw", config.getDouble("npcCoords.yaw"));
         doubles.put("npcPitch", config.getDouble("npcCoords.pitch"));
 
-        // Load bunker instances
+
+        // Load spawn location
+        ConfigurationSection spawnSection = config.getConfigurationSection("spawn");
+        if (spawnSection != null) {
+            double x = spawnSection.getDouble("x");
+            double y = spawnSection.getDouble("y");
+            double z = spawnSection.getDouble("z");
+            float yaw = (float) spawnSection.getDouble("yaw");
+            float pitch = (float) spawnSection.getDouble("pitch");
+            spawnLocation = new Location(null, x, y, z, yaw, pitch); // World must be set at runtime
+            // Save to configManager if needed
+        }
+
+        // Load all bunker levels dynamically
         for (String bunkerKey : config.getKeys(false)) {
+            if (bunkerKey.equals("spawn")) continue; // skip the global spawn
+
             ConfigurationSection section = config.getConfigurationSection(bunkerKey);
             if (section == null) continue;
 
-            String schemName = section.getString("schematicName", "bunker.schem");
-            // Save schematic for bunker level
-            File schematicFile = new File(plugin.getDataFolder(), "schematics/" + schemName);
-            if (!schematicFile.exists()) {
-                plugin.getLogger().warning("Schematic not found for " + bunkerKey + ": " + schematicFile.getName());
-                continue;
+            // Load schematics
+            List<Map<?, ?>> schematicList = section.getMapList("schematics");
+
+            List<BunkerInstance.SchematicWrapper> schematics = new ArrayList<>();
+            for (Map<?, ?> map : schematicList) {
+                String name = (String) map.get("name");
+                Map<?, ?> coords = (Map<?, ?>) map.get("coords");
+
+                if (name == null || coords == null) {
+                    plugin.getLogger().warning("Skipping schematic entry due to missing name or coords in section: " + section.getName());
+                    continue;
+                }
+
+                File file = new File(plugin.getDataFolder(), "schematics/" + name);
+                if (!file.exists()) {
+                    plugin.getLogger().warning("Schematic file not found: " + name);
+                    continue;
+                }
+
+                SchematicUtil schematic = new SchematicUtil(file, plugin);
+                Location loc = parseLocationMap(coords);
+                schematics.add(new BunkerInstance.SchematicWrapper(schematic, loc));
             }
 
-            SchematicUtil schematic = new SchematicUtil(schematicFile, plugin);
-            String generatorType = section.getString("generatorType", null);
-            String hologramType = section.getString("hologramType", null);
-            // Get locations for bunker level with helper function
-            Location schematicLoc = getLocationFromSection(section.getConfigurationSection("schematicCoords"), null);
-            Location spawnLoc = getLocationFromSection(section.getConfigurationSection("spawnCoords"), null);
-            Location npcLoc = getLocationFromSection(section.getConfigurationSection("npcCoords"), null);
-            Location generatorLoc = getLocationFromSection(section.getConfigurationSection("generatorCoords"), null);
-            Location hologramLocation = getLocationFromSection(section.getConfigurationSection("hologramCoords"), null);
-            int npcId = section.getInt("npcId", -1);
-            // Save to map of bunker instances
-            BunkerInstance instance = new BunkerInstance(bunkerKey, schematicLoc, spawnLoc, npcLoc, schematic, generatorLoc, generatorType, npcId, hologramType, hologramLocation);
-            bunkerInstances.put(bunkerKey, instance);
+            // Load NPCs
+            List<Map<?, ?>> npcList = section.getMapList("npcs");
+            List<BunkerInstance.NPCInfo> npcs = npcList.stream().map(map -> {
+                int id = (int) map.get("id");
+                Location loc = parseLocationMap((Map<?, ?>) map.get("coords"));
+                return new BunkerInstance.NPCInfo(id, loc);
+            }).collect(Collectors.toList());
+
+            // Load Generators
+            List<Map<?, ?>> generatorList = section.getMapList("generators");
+            List<BunkerInstance.GeneratorInfo> generators = generatorList.stream().map(map -> {
+                String type = (String) map.get("type");
+                Location loc = parseLocationMap((Map<?, ?>) map.get("coords"));
+                return new BunkerInstance.GeneratorInfo(type, loc);
+            }).collect(Collectors.toList());
+
+            // Load Holograms
+            List<Map<?, ?>> hologramList = section.getMapList("holograms");
+            List<BunkerInstance.HologramInfo> holograms = hologramList.stream().map(map -> {
+                String type = (String) map.get("type");
+                Location loc = parseLocationMap((Map<?, ?>) map.get("coords"));
+                return new BunkerInstance.HologramInfo(type, loc);
+            }).collect(Collectors.toList());
+
+            // Save to instance map
+            bunkerInstances.put(bunkerKey, new BunkerInstance(bunkerKey, schematics, npcs, generators, holograms));
         }
+
     }
+
+    private Location parseLocationMap(Map<?, ?> map) {
+        double x = ((Number) map.get("x")).doubleValue();
+        double y = ((Number) map.get("y")).doubleValue();
+        double z = ((Number) map.get("z")).doubleValue();
+        float yaw = map.containsKey("yaw") ? ((Number) map.get("yaw")).floatValue() : 0f;
+        float pitch = map.containsKey("pitch") ? ((Number) map.get("pitch")).floatValue() : 0f;
+        return new Location(null, x, y, z, yaw, pitch); // you'll assign the world later
+    }
+
 
     private Location getLocationFromSection(ConfigurationSection sec, org.bukkit.World world) {
         if (sec == null) return null;
@@ -108,6 +167,10 @@ public class ConfigManager {
 
     public BunkerInstance getBunkerInstance(String name) {
         return bunkerInstances.get(name);
+    }
+
+    public static Location getSpawnLocation() {
+        return spawnLocation;
     }
 }
 

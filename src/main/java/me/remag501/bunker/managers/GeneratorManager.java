@@ -23,17 +23,17 @@ public class GeneratorManager {
 
     public static void createGenerator(Player player, World world, BunkerInstance bunkerInstance) {
 
-        if (bunkerInstance.getGeneratorType() == null)
-            return;
-
-        Location l = bunkerInstance.getGeneratorLocation();
-        l.setWorld(world);
-
-        GeneratorLocation gl = new GeneratorLocation(-1, Main.getGenerators().get(bunkerInstance.getGeneratorType()), l,
-                Main.getPlacedGenerators().new ChunkInfo(l.getChunk()),
-                Main.getPlayers().getPlayer(player.getName()), null);
-
-        gl.placeGenerator(player, true);
+//        if (bunkerInstance.getGeneratorType() == null)
+//            return;
+//
+//        Location l = bunkerInstance.getGeneratorLocation();
+//        l.setWorld(world);
+//
+//        GeneratorLocation gl = new GeneratorLocation(-1, Main.getGenerators().get(bunkerInstance.getGeneratorType()), l,
+//                Main.getPlacedGenerators().new ChunkInfo(l.getChunk()),
+//                Main.getPlayers().getPlayer(player.getName()), null);
+//
+//        gl.placeGenerator(player, true);
 
     }
 
