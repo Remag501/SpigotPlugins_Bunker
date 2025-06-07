@@ -194,7 +194,7 @@ public class BunkerCreationManager {
             plugin.getLogger().info("World spawn set to " + newSpawn.toString());
 
         // Add NPC sync since citizens requires it
-        NPCManager.addNPC(plugin, world, bunkerInstance);
+        NPCManager.addNPC(plugin, worldName, bunkerInstance);
 
         // Add hologram to world
         HologramManager.addHologram(bunkerInstance, world);
@@ -219,7 +219,7 @@ public class BunkerCreationManager {
         SchematicManager.addSchematic(plugin, bunkerInstance, world.getName());
 
         // Add NPC
-        NPCManager.addNPC(plugin, world, bunkerInstance);
+        NPCManager.addNPC(plugin, world.getName(), bunkerInstance);
 
         // Add generator
         GeneratorManager.createGenerator(player, world, bunkerInstance);
