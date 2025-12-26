@@ -17,15 +17,15 @@ public class BunkerAdminCommand implements CommandExecutor {
 
     private final Bunker plugin;
     private final ConfigManager configManager;
-    private final VisitRequestManager visitRequestManager;
+//    private final VisitRequestManager visitRequestManager;
     private final BunkerCreationManager bunkerCreationManager;
     private final AdminManager adminManager;
 
-    public BunkerAdminCommand(Bunker plugin) {
+    public BunkerAdminCommand(Bunker plugin, ConfigManager configManger, BunkerCreationManager bunkerCreationManager) {
         this.plugin = plugin;
-        this.configManager = new ConfigManager(plugin);
-        this.visitRequestManager = new VisitRequestManager(plugin);
-        this.bunkerCreationManager = new BunkerCreationManager(plugin, configManager);
+        this.configManager = configManger;
+//        this.visitRequestManager = new VisitRequestManager(plugin);
+        this.bunkerCreationManager = bunkerCreationManager;
         this.adminManager = new AdminManager(plugin, bunkerCreationManager);
     }
 
@@ -131,10 +131,20 @@ public class BunkerAdminCommand implements CommandExecutor {
                 }
                 return true;
 
+            case "reload":
+                configManager.reload();
+                bunkerCreationManager.reloadBunkerConfig();
+                player.sendMessage("Bunker config reloaded.");
+                player.sendMessage(bunkerCreationManager.getTotalBunkers() + " " + bunkerCreationManager.getAssignedBunkers());
+                return true;
+
             default:
                 player.sendMessage(ChatColor.RED + "Unknown subcommand. Use add, preview, migrate, or upgrade.");
                 return true;
         }
     }
 
+    public BunkerCreationManager getBunkerCreationManager() {
+        return bunkerCreationManager;
+    }
 }

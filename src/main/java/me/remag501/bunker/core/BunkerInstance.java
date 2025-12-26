@@ -11,17 +11,20 @@ public class BunkerInstance {
     private final List<NPCInfo> npcs;
     private final List<GeneratorInfo> generators;
     private final List<HologramInfo> holograms;
+    private final List<String> removeHolograms;
 
     public BunkerInstance(String name,
                           List<SchematicWrapper> schematics,
                           List<NPCInfo> npcs,
                           List<GeneratorInfo> generators,
-                          List<HologramInfo> holograms) {
+                          List<HologramInfo> holograms,
+                          List<String> removeHolograms) {
         this.name = name;
         this.schematics = schematics;
         this.npcs = npcs;
         this.generators = generators;
         this.holograms = holograms;
+        this.removeHolograms = removeHolograms;
     }
 
     public String getName() { return name; }
@@ -29,6 +32,7 @@ public class BunkerInstance {
     public List<NPCInfo> getNpcs() { return npcs; }
     public List<GeneratorInfo> getGenerators() { return generators; }
     public List<HologramInfo> getHolograms() { return holograms; }
+    public List<String> getRemoveHolograms () {return removeHolograms; }
 
     // Helper data classes
     public static class NPCInfo {
@@ -53,10 +57,12 @@ public class BunkerInstance {
     }
 
     public static class HologramInfo {
+        public String name;
         public String type;
         public Location location;
 
-        public HologramInfo(String type, Location location) {
+        public HologramInfo(String name, String type, Location location) {
+            this.name = name;
             this.type = type;
             this.location = location;
         }

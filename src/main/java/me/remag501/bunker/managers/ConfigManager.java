@@ -126,13 +126,17 @@ public class ConfigManager {
             // Load Holograms
             List<Map<?, ?>> hologramList = section.getMapList("holograms");
             List<BunkerInstance.HologramInfo> holograms = hologramList.stream().map(map -> {
+                String name = (String) map.get("name");
                 String type = (String) map.get("type");
                 Location loc = parseLocationMap((Map<?, ?>) map.get("coords"));
-                return new BunkerInstance.HologramInfo(type, loc);
+                return new BunkerInstance.HologramInfo(name, type, loc);
             }).collect(Collectors.toList());
 
+            // Load Remove-Holograms
+            List<String> removeHolograms = section.getStringList("remove-holograms");
+
             // Save to instance map
-            bunkerInstances.put(bunkerKey, new BunkerInstance(bunkerKey, schematics, npcs, generators, holograms));
+            bunkerInstances.put(bunkerKey, new BunkerInstance(bunkerKey, schematics, npcs, generators, holograms, removeHolograms));
         }
 
     }

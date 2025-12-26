@@ -2,7 +2,7 @@ name: Bunker
 author: Remag501
 version: 1.2
 main: me.remag501.bunker.Bunker
-# api-version: '1.21'
+api-version: '1.19'
 description: "Custom plugin for battlegrounds that allows creation and management of bunkers"
 
 commands:
@@ -27,6 +27,7 @@ depend:
   - DecentHolograms
   - KGenerators
   - WorldGuard
+  - AxVaults
 
 softdepend:
   - PlaceholderAPI

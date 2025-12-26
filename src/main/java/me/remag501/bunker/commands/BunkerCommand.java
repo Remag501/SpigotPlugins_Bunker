@@ -21,11 +21,11 @@ public class BunkerCommand implements CommandExecutor {
     private final VisitRequestManager visitRequestManager;
     private final BunkerCreationManager bunkerCreationManager;
 
-    public BunkerCommand(Bunker plugin) {
+    public BunkerCommand(Bunker plugin, ConfigManager configManager, BunkerCreationManager bunkerCreationManager) {
         this.plugin = plugin;
-        this.configManager = new ConfigManager(plugin);
+        this.configManager = configManager;
         this.visitRequestManager = new VisitRequestManager(plugin);
-        this.bunkerCreationManager = new BunkerCreationManager(plugin, configManager);
+        this.bunkerCreationManager = bunkerCreationManager;
     }
 
     @Override
@@ -95,33 +95,34 @@ public class BunkerCommand implements CommandExecutor {
                 return true;
 
             case "visit":
-                if (args.length < 2) {
-                    player.sendMessage(configManager.getMessage("visitCommandUsage"));
-                    return true;
-                }
-                String targetName = args[1];
-                if (!bunkerCreationManager.hasBunker(targetName)) {
-                    player.sendMessage(configManager.getMessage("noBunker"));
-                    return true;
-                }
-
-                Player targetPlayer= Bukkit.getPlayer(targetName);
-                if (targetPlayer == null) {
-                    player.sendMessage("That player does not exist or is not online");
-                    return true;
-                }
-
-                UUID targetUUID = Bukkit.getPlayer(targetName).getUniqueId(); // or cached UUID method
-                if (visitRequestManager.hasPendingRequest(targetUUID)) {
-                    player.sendMessage("That player already has a pending visit request.");
-                    return true;
-                }
-
-                visitRequestManager.addRequest(player.getUniqueId(), targetPlayer, bunkerCreationManager.getWorldName(playerName));
-                player.sendMessage("Visit request sent to " + targetName + ".");
-                if (targetPlayer != null) {
-                    targetPlayer.sendMessage(player.getName() + " wants to visit your bunker! Use /bunker accept or /bunker decline.");
-                }
+//                if (args.length < 2) {
+//                    player.sendMessage(configManager.getMessage("visitCommandUsage"));
+//                    return true;
+//                }
+//                String targetName = args[1];
+//                if (!bunkerCreationManager.hasBunker(targetName)) {
+//                    player.sendMessage(configManager.getMessage("noBunker"));
+//                    return true;
+//                }
+//
+//                Player targetPlayer= Bukkit.getPlayer(targetName);
+//                if (targetPlayer == null) {
+//                    player.sendMessage("That player does not exist or is not online");
+//                    return true;
+//                }
+//
+//                UUID targetUUID = Bukkit.getPlayer(targetName).getUniqueId(); // or cached UUID method
+//                if (visitRequestManager.hasPendingRequest(targetUUID)) {
+//                    player.sendMessage("That player already has a pending visit request.");
+//                    return true;
+//                }
+//
+//                visitRequestManager.addRequest(player.getUniqueId(), targetPlayer, bunkerCreationManager.getWorldName(playerName));
+//                player.sendMessage("Visit request sent to " + targetName + ".");
+//                if (targetPlayer != null) {
+//                    targetPlayer.sendMessage(player.getName() + " wants to visit your bunker! Use /bunker accept or /bunker decline.");
+//                }
+                player.sendMessage("This command is temporarily removed");
                 return true;
 
             case "accept":
@@ -154,12 +155,6 @@ public class BunkerCommand implements CommandExecutor {
                 }
                 visitRequestManager.removeRequest(player.getUniqueId());
                 player.sendMessage("You declined the visit request.");
-                return true;
-
-            case "reload":
-                configManager.reload();
-                bunkerCreationManager.reloadBunkerConfig();
-                player.sendMessage("Bunker config reloaded.");
                 return true;
 
             default:

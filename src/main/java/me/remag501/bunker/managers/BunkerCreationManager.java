@@ -133,6 +133,7 @@ public class BunkerCreationManager {
         runningTasks.add(playerId);
 
         int oldTotal = getTotalBunkers();
+        player.sendMessage("addBunkers reached " + oldTotal);
         setTotalBunkers(oldTotal + count);
 
         // Create bunkers on main thread with delay in between each creation
@@ -143,6 +144,7 @@ public class BunkerCreationManager {
             public void run() {
                 if (i >= count) {
                     sender.sendMessage("Created " + count + " bunkers.");
+                    bunkerConfig.reload(); // Save world to config
                     runningTasks.remove(playerId);
                     cancel();
                     return;
@@ -249,13 +251,7 @@ public class BunkerCreationManager {
             return false;
         }
 
-        // Get the paste location and paste the upgraded schematic
-//        Location pasteLocation = bunkerInstance.getSchematicLocation();
-//        pasteLocation.setWorld(world);
-//        SchematicUtil schematic = bunkerInstance.getSchematic();
-//        Clipboard clipboard = schematic.loadSchematic(schematic.getFile());
-//        schematic.setLocation(pasteLocation);
-//        schematic.pasteSchematic(clipboard, pasteLocation);
+        // Add schematic
         SchematicManager.addSchematic(plugin, bunkerInstance, world.getName());
 
         // Add NPC
@@ -266,6 +262,9 @@ public class BunkerCreationManager {
 
         // Add hologram to world
         HologramManager.addHologram(bunkerInstance, world);
+
+        // Remove holograms from world
+        HologramManager.removeHolograms(bunkerInstance, world.getName());
 
         Bukkit.getLogger().info("Bunker in world " + world.getName() + " upgraded to level " + bunkerLevel + ".");
         return true;

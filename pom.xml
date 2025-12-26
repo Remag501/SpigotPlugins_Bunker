@@ -57,6 +57,10 @@
 
     <repositories>
         <repository>
+            <id>Artillex-Studios</id>
+            <url>https://repo.artillex-studios.com/releases/</url>
+        </repository>
+        <repository>
             <id>spigotmc-repo</id>
             <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
         </repository>
@@ -96,6 +100,11 @@
 
 
     <dependencies>
+        <dependency>
+            <groupId>com.artillexstudios</groupId>
+            <artifactId>AxVaults</artifactId>
+            <version>2.7.1</version>
+        </dependency>
         <dependency>
             <groupId>me.kryniowesegryderiusz</groupId>
             <artifactId>kgenerators-core</artifactId>

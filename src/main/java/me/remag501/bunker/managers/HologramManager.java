@@ -1,6 +1,7 @@
 package me.remag501.bunker.managers;
 
 import eu.decentsoftware.holograms.api.DHAPI;
+import eu.decentsoftware.holograms.api.DecentHologramsAPI;
 import eu.decentsoftware.holograms.api.holograms.Hologram;
 import me.remag501.bunker.core.BunkerInstance;
 import org.bukkit.Bukkit;
@@ -16,25 +17,41 @@ public class HologramManager {
         if (holograms == null || holograms.isEmpty()) return;
 
         for (BunkerInstance.HologramInfo info : holograms) {
-            String templateName = info.type;
+            String templateName = info.name;
+            String type = info.type;
             Location targetLocation = info.location;
             targetLocation.setWorld(world); // assign world
 
-            Hologram template = DHAPI.getHologram(templateName);
+            Hologram template = DHAPI.getHologram(type);
             if (template == null) {
-                Bukkit.getLogger().warning("Template hologram '" + templateName + "' not found. Skipping.");
+                Bukkit.getLogger().warning("Template hologram '" + type + "' not found. Skipping.");
                 continue;
             }
 
-            String cloneName = world.getName() + "_" + templateName + "_" + System.currentTimeMillis();
-            Hologram clone = template.clone(cloneName, targetLocation, false); // false = don't overwrite
-
+            String cloneName = world.getName() + "_" + templateName;
+            Hologram clone = template.clone(cloneName, targetLocation, false);
             clone.enable();
             clone.save();
+            DecentHologramsAPI.get().getHologramManager().registerHologram(clone);
 
             Bukkit.getLogger().info("Cloned hologram '" + templateName + "' as '" + cloneName + "' at " + targetLocation);
         }
     }
 
+    public static void removeHologram(String hologramName) {
+        Hologram hologram = DHAPI.getHologram(hologramName);
+        if (hologram == null) {
+            Bukkit.getLogger().warning("Hologram " + hologramName + " not found, cannot delete.");
+            return;
+        }
+        hologram.delete();
+    }
+
+    public static void removeHolograms(BunkerInstance bunkerInstance, String worldName) {
+        List<String> holograms = bunkerInstance.getRemoveHolograms();
+        for (String hologramName: holograms) {
+            removeHologram(worldName + "_" + hologramName);
+        }
+    }
 
 }

@@ -33,11 +33,14 @@ public class AdminManager {
     public void previewBunker(Player player) {
         // Delete the existing preview world if it exists
         World previewWorld = Bukkit.getWorld("bunker_preview");
+        BunkerInstance bunkerInstance = bunkerCreationManager.getConfigManger().getBunkerInstance("main");
+
         if (previewWorld != null) {
 
-            // Delete any npcs in the world
+            // Prepare to delete any npcs in the world
             NPCRegistry registry = CitizensAPI.getNPCRegistry();
             List<NPC> toRemove = new ArrayList<>();
+
             // First collect NPCs to delete
             for (NPC npc : registry) {
                 if (npc.isSpawned() && npc.getEntity().getWorld().equals(previewWorld)) {
@@ -49,12 +52,13 @@ public class AdminManager {
                 npc.despawn();
                 npc.destroy();
             }
+
             // Delete all holograms in a world
-//            for (Hologram hologram : DHAPI..getHologramManager().getHolograms().values()) {
-//                if (hologram.getLocation().getWorld().equals(world)) {
-//                    hologram.delete(); // Removes the hologram from both memory and config
-//                }
-//            }
+            for (BunkerInstance.HologramInfo hologramInfo : bunkerInstance.getHolograms()) {
+                HologramManager.removeHologram("bunker_preview" + hologramInfo.name);
+            }
+
+            // No generator deletion?
 
             // Delete world via multiverse core
             MultiverseCore core = (MultiverseCore) Bukkit.getPluginManager().getPlugin("Multiverse-Core");
@@ -79,7 +83,7 @@ public class AdminManager {
                     World newWorld = Bukkit.getWorld("bunker_preview");
                     if (newWorld != null) {
                         // Add generators in player name
-                        GeneratorManager.createGenerator(player, newWorld, bunkerCreationManager.getConfigManger().getBunkerInstance("main"));
+                        GeneratorManager.createGenerator(player, newWorld, bunkerInstance);
 
                         // Teleport player
                         Location spawn = newWorld.getSpawnLocation();
