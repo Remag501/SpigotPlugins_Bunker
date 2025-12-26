@@ -126,49 +126,50 @@ public class BunkerCreationManager {
         UUID playerId = player.getUniqueId();
 
         if (runningTasks.contains(playerId)) {
-            player.sendMessage("The bunker creation is still in progress. Please wait.");
+            player.sendMessage(ChatColor.RED + "A bunker creation task is already running.");
             return true;
         }
 
         runningTasks.add(playerId);
-
         int oldTotal = getTotalBunkers();
-        player.sendMessage("addBunkers reached " + oldTotal);
         setTotalBunkers(oldTotal + count);
 
-        // Create bunkers on main thread with delay in between each creation
-        int delayBetweenWorlds = 40; // 2 seconds per world
+        // Process one by one to prevent WorldGuard/Citizens collisions
         new BukkitRunnable() {
             int i = 0;
+
             @Override
             public void run() {
                 if (i >= count) {
-                    sender.sendMessage("Created " + count + " bunkers.");
-                    bunkerConfig.reload(); // Save world to config
+                    sender.sendMessage(ChatColor.GREEN + "Successfully created " + count + " bunkers.");
+                    bunkerConfig.reload();
                     runningTasks.remove(playerId);
                     cancel();
                     return;
                 }
+
                 String worldName = "bunker_" + (oldTotal + i);
+
+                // Trigger creation and content setup
                 createBunkerWorld(worldName);
+
                 i++;
             }
-        }.runTaskTimer(plugin, 0L, delayBetweenWorlds);
+        }.runTaskTimer(plugin, 0L, 60L); // 3-second gap for safety
 
         return true;
     }
 
     public void createBunkerWorld(String worldName) {
-        plugin.getLogger().info("Creating bunker world: " + worldName);
-
+        plugin.getLogger().info("Initializing creation for: " + worldName);
         BunkerInstance bunkerInstance = configManager.getBunkerInstance("main");
 
-        Plugin multiversePlugin = Bukkit.getPluginManager().getPlugin("Multiverse-Core");
-        MultiverseCore multiverseCore = (MultiverseCore) multiversePlugin;
+        MultiverseCore multiverseCore = (MultiverseCore) Bukkit.getPluginManager().getPlugin("Multiverse-Core");
         MVWorldManager worldManager = multiverseCore.getMVWorldManager();
 
+        // 1. Trigger Multiverse to create the world
         if (worldManager.getMVWorld(worldName) == null) {
-            worldManager.addWorld(
+            boolean success = worldManager.addWorld(
                     worldName,
                     World.Environment.NORMAL,
                     null,
@@ -176,42 +177,72 @@ public class BunkerCreationManager {
                     false,
                     "VoidGen"
             );
-            plugin.getLogger().info("World " + worldName + " created successfully.");
-        } else {
-            plugin.getLogger().info("World " + worldName + " already exists.");
-            return;
+            if (!success) {
+                plugin.getLogger().severe("Multiverse failed to create " + worldName);
+                return;
+            }
         }
 
-        // Set world attributes from config
-        Location newSpawn = ConfigManager.getSpawnLocation();
-        World world = Bukkit.getWorld(worldName);
+        // 2. We MUST wait for the world to be loaded in Bukkit's memory
+        // Before running WorldGuard or Citizens logic.
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                World world = Bukkit.getWorld(worldName);
+                if (world == null) {
+                    plugin.getLogger().warning("World " + worldName + " not yet visible to Bukkit. Retrying content load...");
+                    return; // The task will repeat or we can schedule a one-off later
+                }
+
+                setupWorldContent(world, bunkerInstance);
+                cancel();
+            }
+        }.runTaskTimer(plugin, 5L, 10L);
+    }
+
+    private void setupWorldContent(World world, BunkerInstance bunkerInstance) {
+        String worldName = world.getName();
+        MultiverseCore multiverseCore = (MultiverseCore) Bukkit.getPluginManager().getPlugin("Multiverse-Core");
+        MVWorldManager worldManager = multiverseCore.getMVWorldManager();
         MultiverseWorld mvWorld = worldManager.getMVWorld(world);
+
+        // Metadata Setup
+        Location newSpawn = ConfigManager.getSpawnLocation();
         mvWorld.setAdjustSpawn(false);
         mvWorld.setSpawnLocation(newSpawn);
         world.setSpawnLocation(newSpawn);
         mvWorld.setDifficulty(Difficulty.PEACEFUL);
-        mvWorld.setGameMode(GameMode.SURVIVAL);
         world.setGameRule(GameRule.DO_MOB_SPAWNING, false);
         world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, false);
         world.setGameRule(GameRule.DO_WEATHER_CYCLE, false);
 
-        // Setup WorldGuard flags
+        // WorldGuard Phase
+        setupWorldGuardFlags(world);
+
+        // Content Phase
+        SchematicManager.addSchematic(plugin, bunkerInstance, worldName);
+
+        // Citizens/Hologram Phase
+        // Important: Citizens needs the world to be "ticked" at least once
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                NPCManager.addNPC(plugin, worldName, bunkerInstance);
+                HologramManager.addHologram(bunkerInstance, world);
+                plugin.getLogger().info("Successfully finished content setup for " + worldName);
+            }
+        }.runTaskLater(plugin, 10L);
+    }
+
+    private void setupWorldGuardFlags(World world) {
         try {
             RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
             RegionManager regionManager = container.get(BukkitAdapter.adapt(world));
+            if (regionManager == null) return;
 
-            if (regionManager == null) {
-                plugin.getLogger().warning("RegionManager is null for world " + worldName);
-                return;
-            }
+            var globalRegion = regionManager.getRegion("__global__");
+            if (globalRegion == null) return;
 
-            ProtectedRegion globalRegion = regionManager.getRegion("__global__");
-            if (globalRegion == null) {
-                plugin.getLogger().warning("Global region '__global__' not found in world " + worldName);
-                return;
-            }
-
-            // Custom flags
             StateFlag interactFlag = (StateFlag) WorldGuard.getInstance().getFlagRegistry().get("kgenerators-interact");
             StateFlag pickupFlag = (StateFlag) WorldGuard.getInstance().getFlagRegistry().get("kgenerators-pick-up");
             StateFlag breakFlag = (StateFlag) WorldGuard.getInstance().getFlagRegistry().get("kgenerators-only-gen-break");
@@ -219,28 +250,9 @@ public class BunkerCreationManager {
             if (interactFlag != null) globalRegion.setFlag(interactFlag, StateFlag.State.ALLOW);
             if (pickupFlag != null) globalRegion.setFlag(pickupFlag, StateFlag.State.DENY);
             if (breakFlag != null) globalRegion.setFlag(breakFlag, StateFlag.State.ALLOW);
-
-            plugin.getLogger().info("Global WorldGuard flags set for world '" + worldName + "'.");
         } catch (Exception e) {
-            plugin.getLogger().warning("Failed to set global WorldGuard flags for world " + worldName + ": " + e.getMessage());
+            plugin.getLogger().warning("WG Flags failed for " + world.getName());
         }
-
-        // Paste schematic
-        SchematicManager.addSchematic(plugin, bunkerInstance, worldName);
-
-        // Check world spawn was set correctly
-        Location spawnLoc = ConfigManager.getSpawnLocation();
-        if (!(world.getSpawnLocation().getX() == spawnLoc.getX() && world.getSpawnLocation().getY() == spawnLoc.getY() && world.getSpawnLocation().getZ() == spawnLoc.getZ())) {
-            plugin.getLogger().info("Failed to set spawn location for world " + worldName + ". Check configuration.");
-        } else
-            plugin.getLogger().info("World spawn set to " + newSpawn.toString());
-
-        // Add NPC sync since citizens requires it
-        NPCManager.addNPC(plugin, worldName, bunkerInstance);
-
-        // Add hologram to world
-        HologramManager.addHologram(bunkerInstance, world);
-
     }
 
     public boolean upgradeBunkerWorld(World world, String bunkerLevel, Player player) {
