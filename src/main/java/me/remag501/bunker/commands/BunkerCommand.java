@@ -71,6 +71,8 @@ public class BunkerCommand implements CommandExecutor {
                 return true;
 
             case "upgrade":
+                if (!player.hasPermission("bunker.upgrade"))
+                    return true;
                 if (args.length < 2) {
                     player.sendMessage(ChatColor.RED + "Usage: /bunker upgrade <level>");
                     return true;
