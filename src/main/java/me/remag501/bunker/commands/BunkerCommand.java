@@ -38,6 +38,9 @@ public class BunkerCommand implements CommandExecutor {
         Player player = (Player) sender;
         String playerName = player.getName();
 
+        if (!player.hasPermission("bunker.use"))
+            return true;
+
         if (args.length == 0 || args[0].equalsIgnoreCase("home")) {
             // Teleport to own bunker
             if (!bunkerCreationManager.hasBunker(playerName)) {

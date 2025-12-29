@@ -94,7 +94,7 @@ public class BunkerCreationManager {
         // Enough should exist
         int assigned = getAssignedBunkers();
         int total = getTotalBunkers();
-        Bukkit.getPlayer(playerName).sendMessage("reached " + assigned + " " + total);
+//        Bukkit.getPlayer(playerName).sendMessage("reached " + assigned + " " + total);
         if (assigned >= total) return false;
 
         // Update the config
@@ -246,10 +246,13 @@ public class BunkerCreationManager {
             StateFlag interactFlag = (StateFlag) WorldGuard.getInstance().getFlagRegistry().get("kgenerators-interact");
             StateFlag pickupFlag = (StateFlag) WorldGuard.getInstance().getFlagRegistry().get("kgenerators-pick-up");
             StateFlag breakFlag = (StateFlag) WorldGuard.getInstance().getFlagRegistry().get("kgenerators-only-gen-break");
+            StateFlag iceFlag = (StateFlag) WorldGuard.getInstance().getFlagRegistry().get("ice-melt");
 
             if (interactFlag != null) globalRegion.setFlag(interactFlag, StateFlag.State.ALLOW);
             if (pickupFlag != null) globalRegion.setFlag(pickupFlag, StateFlag.State.DENY);
             if (breakFlag != null) globalRegion.setFlag(breakFlag, StateFlag.State.ALLOW);
+            if (iceFlag != null) globalRegion.setFlag(iceFlag, StateFlag.State.DENY);
+
         } catch (Exception e) {
             plugin.getLogger().warning("WG Flags failed for " + world.getName());
         }

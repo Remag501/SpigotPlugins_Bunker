@@ -6,12 +6,22 @@ api-version: '1.19'
 description: "Custom plugin for battlegrounds that allows creation and management of bunkers"
 
 commands:
+  bunker:
+    description: Access bunker features.
+    usage: /bunker [upgrade]
+    aliases: [b]
+    permission: bunker.use
+  bunkeradmin:
+    description: Administrative management for bunkers.
+    usage: /bunkeradmin <args>
+    aliases: [ba]
+    permission: bunker.admin
+
+permissions:
   # This is the "parent" permission for players
   bunker.use:
     description: Basic access to the bunker command.
     default: true
-    children:
-      bunker.upgrade: true
 
   # This is the subcommand permission
   bunker.upgrade:
