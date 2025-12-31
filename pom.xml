@@ -73,8 +73,8 @@
             <url>https://repo.extendedclip.com/content/repositories/placeholderapi/</url>
         </repository>
         <repository>
-            <id>Multiverse-Core</id>
-            <url>https://repo.onarandombox.com/content/repositories/multiverse/</url>
+            <id>glaremasters-repo</id>
+            <url>https://repo.glaremasters.me/repository/public/</url>
         </repository>
         <repository>
             <id>enginehub-maven</id>
