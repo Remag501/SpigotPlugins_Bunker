@@ -73,32 +73,6 @@ public class BunkerCommand implements CommandExecutor {
                 }
                 return true;
 
-            case "upgrade":
-                if (!player.hasPermission("bunker.upgrade"))
-                    return true;
-                if (args.length < 2) {
-                    player.sendMessage(ChatColor.RED + "Usage: /bunker upgrade <level>");
-                    return true;
-                }
-                if (!bunkerCreationManager.hasBunker(playerName)) {
-                    player.sendMessage(configManager.getMessage("noBunkerOwned"));
-                    return true;
-                }
-
-                String level = args[1];
-                String bunkerName = bunkerCreationManager.getWorldName(playerName);
-                String playerWorldName = player.getWorld().getName();
-                if (!playerWorldName.equals(bunkerName) && !playerWorldName.equals("bunker_preview")) {
-                    player.sendMessage(ChatColor.RED + "You need to be in your bunker to upgrade it!");
-                    return true;
-                }
-
-                if (bunkerCreationManager.upgradeBunker(player, level))
-                    player.sendMessage(ChatColor.GREEN + "Your bunker has gotten the upgrade " + level + "!");
-                else
-                    player.sendMessage(ChatColor.RED + "You already have the upgrade " + level + " or it does not exist!");
-                return true;
-
             case "visit":
 //                if (args.length < 2) {
 //                    player.sendMessage(configManager.getMessage("visitCommandUsage"));
