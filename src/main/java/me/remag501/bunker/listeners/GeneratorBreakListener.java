@@ -11,7 +11,7 @@ public class GeneratorBreakListener implements Listener {
     public void handleGeneratorBreak(GeneratorBreakEvent event) {
         Player player = event.getPlayer();
         if (!player.hasPermission("bunker.breakgen")) {
-            player.sendMessage("You can't do that sarr");
+//            player.sendMessage("§c§l(!) §cYou can't break your own generator!");
             event.setCancelled(true);
         }
     }

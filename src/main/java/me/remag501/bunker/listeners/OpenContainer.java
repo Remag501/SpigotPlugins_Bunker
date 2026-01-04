@@ -79,7 +79,7 @@ public class OpenContainer implements Listener {
 
         if (blockedMenus.contains(type) || state instanceof Container) {
             event.setCancelled(true);
-            event.getPlayer().sendMessage("§cYou can't use that in a bunker world.");
+            event.getPlayer().sendMessage("§c§l(!) §cYou can't use that in a bunker world.");
         }
     }
 
