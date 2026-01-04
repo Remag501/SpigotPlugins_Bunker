@@ -3,6 +3,7 @@ package me.remag501.bunker;
 import me.remag501.bunker.commands.BunkerAdminCommand;
 import me.remag501.bunker.commands.BunkerCommand;
 //import me.remag501.bunker.commands.BunkerCommandOld;
+import me.remag501.bunker.listeners.GeneratorBreakListener;
 import me.remag501.bunker.listeners.OpenContainer;
 import me.remag501.bunker.managers.BunkerCreationManager;
 import me.remag501.bunker.managers.ConfigManager;
@@ -33,6 +34,7 @@ public final class Bunker extends JavaPlugin {
         getLogger().info("Bunker has been enabled!");
         // Register listeners
         getServer().getPluginManager().registerEvents(new OpenContainer(), this);
+        getServer().getPluginManager().registerEvents(new GeneratorBreakListener(), this);
 
     }
 

@@ -33,6 +33,11 @@ permissions:
     description: Full administrative control.
     default: op
 
+  # Permission to break your own bunker gen
+  bunker.breakgen:
+    description: This permission should have been in NextGens
+    default: op
+
 
 
 depend:
@@ -41,7 +46,6 @@ depend:
   - Citizens
   - VoidGen
   - DecentHolograms
-  - KGenerators
   - WorldGuard
   - AxVaults
 
