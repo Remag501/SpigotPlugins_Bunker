@@ -9,6 +9,7 @@ import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.protection.flags.StateFlag;
 import com.sk89q.worldguard.protection.managers.RegionManager;
+import com.sk89q.worldguard.protection.regions.GlobalProtectedRegion;
 import com.sk89q.worldguard.protection.regions.ProtectedCuboidRegion;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
@@ -200,39 +201,54 @@ public class BunkerCreationManager {
         }.runTaskTimer(plugin, 5L, 10L);
     }
 
-    private void setupWorldContent(World world, BunkerInstance bunkerInstance) {
+    public void setupWorldContent(World world, BunkerInstance bunkerInstance) {
         String worldName = world.getName();
         MultiverseCore multiverseCore = (MultiverseCore) Bukkit.getPluginManager().getPlugin("Multiverse-Core");
+        if (multiverseCore == null) return;
+
         MVWorldManager worldManager = multiverseCore.getMVWorldManager();
         MultiverseWorld mvWorld = worldManager.getMVWorld(world);
 
-        // Metadata Setup
+        // 1. Core Bukkit/MV Settings (Safe to do immediately)
+        applyWorldSettings(world, mvWorld);
+
+        // 2. Wait for the World to be "Ready"
+        // We target the spawn chunk. When this completes, the world is ticked and WorldGuard
+        // will have recognized the new world instance.
+        world.getChunkAtAsync(world.getSpawnLocation()).thenAccept(chunk -> {
+
+            // Return to sync thread for API interactions (WG, Citizens, etc.)
+            Bukkit.getScheduler().runTask(plugin, () -> {
+
+                // 3. WorldGuard Phase
+                // Now that the world is loaded/ticked, the RegionManager is guaranteed to exist
+                setupWorldGuardFlags(world);
+
+                // 4. Schematic Phase
+                SchematicManager.addSchematic(plugin, bunkerInstance, worldName);
+
+                // 5. Citizens/Hologram Phase
+                NPCManager.addNPC(plugin, worldName, bunkerInstance);
+                HologramManager.addHologram(bunkerInstance, world);
+
+                plugin.getLogger().info("Successfully initialized all systems for " + worldName);
+            });
+        });
+    }
+
+    private void applyWorldSettings(World world, MultiverseWorld mvWorld) {
         Location newSpawn = ConfigManager.getSpawnLocation();
-        mvWorld.setAdjustSpawn(false);
-        mvWorld.setSpawnLocation(newSpawn);
+        if (mvWorld != null) {
+            mvWorld.setAdjustSpawn(false);
+            mvWorld.setSpawnLocation(newSpawn);
+            mvWorld.setDifficulty(Difficulty.PEACEFUL);
+        }
         world.setSpawnLocation(newSpawn);
-        mvWorld.setDifficulty(Difficulty.PEACEFUL);
         world.setGameRule(GameRule.DO_MOB_SPAWNING, false);
         world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, false);
         world.setGameRule(GameRule.DO_WEATHER_CYCLE, false);
-
-        // WorldGuard Phase
-        setupWorldGuardFlags(world);
-
-        // Content Phase
-        SchematicManager.addSchematic(plugin, bunkerInstance, worldName);
-
-        // Citizens/Hologram Phase
-        // Important: Citizens needs the world to be "ticked" at least once
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                NPCManager.addNPC(plugin, worldName, bunkerInstance);
-                HologramManager.addHologram(bunkerInstance, world);
-                plugin.getLogger().info("Successfully finished content setup for " + worldName);
-            }
-        }.runTaskLater(plugin, 10L);
     }
+
 
     private void setupWorldGuardFlags(World world) {
         try {
@@ -241,17 +257,43 @@ public class BunkerCreationManager {
             if (regionManager == null) return;
 
             var globalRegion = regionManager.getRegion("__global__");
-            if (globalRegion == null) return;
+            if (globalRegion == null) {
+                // Global region doesn't exist yet due to world load, manually adding it
+                globalRegion = new GlobalProtectedRegion("__global__");
+                regionManager.addRegion(globalRegion);
+            }
 
-            StateFlag interactFlag = (StateFlag) WorldGuard.getInstance().getFlagRegistry().get("kgenerators-interact");
-            StateFlag pickupFlag = (StateFlag) WorldGuard.getInstance().getFlagRegistry().get("kgenerators-pick-up");
-            StateFlag breakFlag = (StateFlag) WorldGuard.getInstance().getFlagRegistry().get("kgenerators-only-gen-break");
+            plugin.getLogger().info("Loading in world guard flags");
+
             StateFlag iceFlag = (StateFlag) WorldGuard.getInstance().getFlagRegistry().get("ice-melt");
+            StateFlag enderFlag = (StateFlag) WorldGuard.getInstance().getFlagRegistry().get("enderpearl");
+            StateFlag breakBlockFlag = (StateFlag) WorldGuard.getInstance().getFlagRegistry().get("block-break");
+            StateFlag placeBlockFlag = (StateFlag) WorldGuard.getInstance().getFlagRegistry().get("block-place");
+            StateFlag pvpFlag = (StateFlag) WorldGuard.getInstance().getFlagRegistry().get("pvp");
+            StateFlag miFlag = (StateFlag) WorldGuard.getInstance().getFlagRegistry().get("mi-weapons");
+            StateFlag mmoFlag = (StateFlag) WorldGuard.getInstance().getFlagRegistry().get("mmo-abilities");
+            StateFlag fallDmgFlag = (StateFlag) WorldGuard.getInstance().getFlagRegistry().get("fall-damage");
+            StateFlag lavaFlowFlag = (StateFlag) WorldGuard.getInstance().getFlagRegistry().get("lava-flow");
+            StateFlag lavaFireFlag = (StateFlag) WorldGuard.getInstance().getFlagRegistry().get("lava-fire");
+            StateFlag invincibleFlag = (StateFlag) WorldGuard.getInstance().getFlagRegistry().get("invincible");
+//            StateFlag healAmountFlag = (StateFlag) WorldGuard.getInstance().getFlagRegistry().get("heal-amount");
+//            StateFlag healDelayFlag = (StateFlag) WorldGuard.getInstance().getFlagRegistry().get("heal-delay");
 
-            if (interactFlag != null) globalRegion.setFlag(interactFlag, StateFlag.State.ALLOW);
-            if (pickupFlag != null) globalRegion.setFlag(pickupFlag, StateFlag.State.DENY);
-            if (breakFlag != null) globalRegion.setFlag(breakFlag, StateFlag.State.ALLOW);
+
             if (iceFlag != null) globalRegion.setFlag(iceFlag, StateFlag.State.DENY);
+            if (enderFlag != null) globalRegion.setFlag(enderFlag, StateFlag.State.DENY);
+            if (breakBlockFlag != null) globalRegion.setFlag(breakBlockFlag, StateFlag.State.DENY);
+            if (placeBlockFlag != null) globalRegion.setFlag(placeBlockFlag, StateFlag.State.DENY);
+            if (pvpFlag != null) globalRegion.setFlag(pvpFlag, StateFlag.State.DENY);
+            if (miFlag != null) globalRegion.setFlag(miFlag, StateFlag.State.DENY);
+            if (mmoFlag != null) globalRegion.setFlag(mmoFlag, StateFlag.State.DENY);
+            if (fallDmgFlag != null) globalRegion.setFlag(fallDmgFlag, StateFlag.State.DENY);
+            if (lavaFlowFlag != null) globalRegion.setFlag(lavaFlowFlag, StateFlag.State.DENY);
+            if (lavaFireFlag != null) globalRegion.setFlag(lavaFireFlag, StateFlag.State.DENY);
+            if (invincibleFlag != null) globalRegion.setFlag(invincibleFlag, StateFlag.State.ALLOW);
+//            if (healAmountFlag != null) globalRegion.setFlag(healAmountFlag, StateFlag.State.valueOf(""));
+//            if (healDelayFlag != null) globalRegion.setFlag(healDelayFlag, StateFlag.State.DENY);
+
 
         } catch (Exception e) {
             plugin.getLogger().warning("WG Flags failed for " + world.getName());

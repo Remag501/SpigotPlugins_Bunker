@@ -43,20 +43,4 @@ public final class Bunker extends JavaPlugin {
         // Plugin shutdown logic
     }
 
-//    public org.bukkit.WorldType getVoidWorldType() {
-//        Object voidWorldType = null;
-//        // Get world type and store it as class variable
-//        try {
-//            // Get the NMS WorldType class
-//            Class<?> worldTypeClass = Class.forName("net.minecraft.server." + getServerVersion() + ".WorldType");
-//            // Get the WorldType for the void world
-//            Method getByNameMethod = worldTypeClass.getMethod("getByName", String.class);
-//            voidWorldType = getByNameMethod.invoke(null, "void");
-//
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//        return voidWorldType;
-//    }
-
 }

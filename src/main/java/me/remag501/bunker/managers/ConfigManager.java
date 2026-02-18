@@ -15,11 +15,13 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class ConfigManager {
+
     private final Bunker plugin;
-    private static Map<String, String> messages = new HashMap<>();
-    private static Map<String, Double> doubles = new HashMap<>();
-    private static final Map<String, BunkerInstance> bunkerInstances = new HashMap<>();
-    private static Location spawnLocation = null;
+
+    private Map<String, String> messages = new HashMap<>();
+    private Map<String, Double> doubles = new HashMap<>();
+    private Map<String, BunkerInstance> bunkerInstances = new HashMap<>();
+    private Location spawnLocation = null;
 
     public ConfigManager(Bunker plugin) {
         this.plugin = plugin;
@@ -173,7 +175,7 @@ public class ConfigManager {
         return bunkerInstances.get(name);
     }
 
-    public static Location getSpawnLocation() {
+    public Location getSpawnLocation() {
         return spawnLocation;
     }
 }
