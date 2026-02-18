@@ -2,6 +2,7 @@ package me.remag501.bunker.managers;
 
 import me.remag501.bunker.Bunker;
 import me.remag501.bunker.core.BunkerInstance;
+import me.remag501.bunker.service.SchematicService;
 import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -103,9 +104,8 @@ public class BunkerConfigManager {
                     continue;
                 }
 
-                SchematicUtil schematic = new SchematicUtil(file, plugin);
                 Location loc = parseLocationMap(coords);
-                schematics.add(new BunkerInstance.SchematicWrapper(schematic, loc));
+                schematics.add(new BunkerInstance.SchematicWrapper(file, loc));
             }
 
             // Load NPCs
