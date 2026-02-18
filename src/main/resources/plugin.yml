@@ -48,6 +48,7 @@ depend:
   - DecentHolograms
   - WorldGuard
   - AxVaults
+  - NextGens
 
 softdepend:
   - PlaceholderAPI

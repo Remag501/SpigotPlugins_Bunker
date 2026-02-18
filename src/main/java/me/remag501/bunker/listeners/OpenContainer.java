@@ -2,6 +2,7 @@ package me.remag501.bunker.listeners;
 
 import com.artillexstudios.axvaults.AxVaults;
 import com.artillexstudios.axvaults.guis.VaultSelector;
+import com.artillexstudios.axvaults.vaults.VaultManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -62,7 +63,9 @@ public class OpenContainer implements Listener {
         BlockState state = clickedBlock.getState();
         if (blockedContainers.contains(type)) {
             event.setCancelled(true);
-            new VaultSelector().open(event.getPlayer());
+            VaultManager.getPlayer(event.getPlayer()).thenAccept(vaultPlayer -> {
+                new VaultSelector(event.getPlayer(), vaultPlayer).open();
+            });
             return;
         }
 
