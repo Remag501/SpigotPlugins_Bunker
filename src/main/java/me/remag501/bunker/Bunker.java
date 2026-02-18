@@ -33,26 +33,28 @@ public final class Bunker extends JavaPlugin {
         CommandService commandService = BGSApi.commands();
 
         // Create services
-        HologramService hologramService = new HologramService();
-        GeneratorService generatorService = new GeneratorService(this);
-        NPCService npcService = new NPCService(this);
-        SchematicService schematicService = new SchematicService(this);
-        WorldGuardService worldGuardService = new WorldGuardService(this);
+        HologramService hologramService = new HologramService(getLogger());
+        GeneratorService generatorService = new GeneratorService(taskService, getLogger());
+        NPCService npcService = new NPCService(taskService, getLogger());
+        SchematicService schematicService = new SchematicService(taskService, getLogger());
+        WorldGuardService worldGuardService = new WorldGuardService(getLogger());
 
         // Create managers
-        BunkerCreationManager bunkerCreationManager = new BunkerCreationManager(this, configManager,
+        BunkerCreationManager bunkerCreationManager = new BunkerCreationManager(taskService, getLogger(), configManager,
                 bunkerConfigManager, generatorService, hologramService, npcService, schematicService, worldGuardService);
         AdminManager adminManager = new AdminManager(this, bunkerCreationManager, hologramService, generatorService);
+
+        // Register listeners
+        new OpenContainer(eventService);
+        new GeneratorBreakListener(eventService);
 
         // Setup commands
         BunkerCommand command = new BunkerCommand(this, bunkerConfigManager, bunkerCreationManager);
         getCommand("bunker").setExecutor(command);
+        commandService.registerSubcommand("bunker", command);
         BunkerAdminCommand adminCommand = new BunkerAdminCommand(bunkerConfigManager, bunkerCreationManager, adminManager);
         getCommand("bunkeradmin").setExecutor(adminCommand);
-
-        // Register listeners
-        getServer().getPluginManager().registerEvents(new OpenContainer(), this);
-        getServer().getPluginManager().registerEvents(new GeneratorBreakListener(), this);
+        commandService.registerSubcommand("bunkeradmin", command);
 
         // Send startup message
         getLogger().info("Bunker has been enabled!");
