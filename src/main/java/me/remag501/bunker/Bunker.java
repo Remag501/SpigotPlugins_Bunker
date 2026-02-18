@@ -17,7 +17,11 @@ import me.remag501.bunker.managers.ConfigManager;
 import me.remag501.bunker.service.*;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.UUID;
+
 public final class Bunker extends JavaPlugin {
+
+    public static final UUID SYSTEM_ID = UUID.nameUUIDFromBytes("BUNKER_TASK".getBytes());
 
     @Override
     public void onEnable() {

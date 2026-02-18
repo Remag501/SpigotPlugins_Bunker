@@ -190,7 +190,7 @@ public class BunkerCreationManager {
         // 2. Wait for the world to be loaded using TaskService
         // Owner: null (System task), Category: unique per world
         // Delay: 5 ticks, Interval: 10 ticks (0.5s)
-        taskService.subscribe(null, "world-init-" + worldName, 5, 10, (iterations) -> {
+        taskService.subscribe(Bunker.SYSTEM_ID, "world-init-" + worldName, 5, 10, (iterations) -> {
             World world = Bukkit.getWorld(worldName);
 
             if (world != null) {

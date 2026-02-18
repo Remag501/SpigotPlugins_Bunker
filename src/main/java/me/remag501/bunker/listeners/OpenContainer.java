@@ -32,14 +32,14 @@ public class OpenContainer {
 
                     // 1. Define the sets (Ideally move these to static constants for performance)
                     Set<Material> vaultTriggerBlocks = EnumSet.of(
-                            Material.CHEST, Material.TRAPPED_CHEST, Material.BARREL, Material.ENDER_CHEST,
-                            Material.HOPPER, Material.DROPPER
+                            Material.CHEST, Material.TRAPPED_CHEST, Material.BARREL, Material.ENDER_CHEST
                     );
                     // (Add shulker boxes to the EnumSet above)
 
                     Set<Material> blockedMenus = EnumSet.of(
                             Material.SMITHING_TABLE, Material.BREWING_STAND, Material.ENCHANTING_TABLE,
-                            Material.ANVIL, Material.CHIPPED_ANVIL, Material.DAMAGED_ANVIL, Material.GRINDSTONE
+                            Material.ANVIL, Material.CHIPPED_ANVIL, Material.DAMAGED_ANVIL, Material.GRINDSTONE, Material.FURNACE,
+                            Material.HOPPER, Material.DROPPER
                     );
 
                     // 2. Logic for Vault Access
