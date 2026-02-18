@@ -11,12 +11,20 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.List;
 
 public class NPCService {
-    public static void addNPC(Bunker plugin, String worldName, BunkerInstance bunkerInstance) {
+
+    private final Plugin plugin;
+
+    public NPCService(Plugin plugin) {
+        this.plugin = plugin;
+    }
+
+    public void addNPC(String worldName, BunkerInstance bunkerInstance) {
         int[] attempts = {0};
         int maxAttempts = 100;
 

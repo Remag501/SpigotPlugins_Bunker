@@ -11,7 +11,13 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 public class SchematicService {
 
-    public static void addSchematic(Plugin plugin, BunkerInstance bunkerInstance, String worldName) {
+    private final Plugin plugin;
+
+    public SchematicService(Plugin plugin) {
+        this.plugin = plugin;
+    }
+
+    public void addSchematic(BunkerInstance bunkerInstance, String worldName) {
         int[] attempts = {0};
         int maxAttempts = 100;
 
