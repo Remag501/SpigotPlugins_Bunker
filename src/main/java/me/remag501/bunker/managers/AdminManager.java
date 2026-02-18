@@ -5,6 +5,8 @@ import com.onarandombox.MultiverseCore.api.MVWorldManager;
 import eu.decentsoftware.holograms.api.DHAPI;
 import eu.decentsoftware.holograms.api.holograms.Hologram;
 import me.remag501.bunker.core.BunkerInstance;
+import me.remag501.bunker.service.GeneratorService;
+import me.remag501.bunker.service.HologramService;
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.npc.NPC;
 import net.citizensnpcs.api.npc.NPCRegistry;
@@ -22,12 +24,16 @@ import java.util.List;
 
 public class AdminManager {
 
-    private Plugin plugin;
-    private BunkerCreationManager bunkerCreationManager;
+    private final Plugin plugin;
+    private final BunkerCreationManager bunkerCreationManager;
+    private final HologramService hologramService;
+    private final GeneratorService generatorService;
 
-    public AdminManager(Plugin plugin, BunkerCreationManager bunkerCreationManager) {
+    public AdminManager(Plugin plugin, BunkerCreationManager bunkerCreationManager, HologramService hologramService, GeneratorService generatorService) {
         this.plugin = plugin;
         this.bunkerCreationManager = bunkerCreationManager;
+        this.hologramService = hologramService;
+        this.generatorService = generatorService;
     }
 
     public void previewBunker(Player player) {
@@ -55,7 +61,7 @@ public class AdminManager {
 
             // Delete all holograms in a world
             for (BunkerInstance.HologramInfo hologramInfo : bunkerInstance.getHolograms()) {
-                HologramManager.removeHologram("bunker_preview" + hologramInfo.name);
+                hologramService.removeHologram("bunker_preview" + hologramInfo.name);
             }
 
             // No generator deletion?
@@ -83,7 +89,7 @@ public class AdminManager {
                     World newWorld = Bukkit.getWorld("bunker_preview");
                     if (newWorld != null) {
                         // Add generators in player name
-                        GeneratorManager.createGenerator(player, newWorld, bunkerInstance);
+                        generatorService.createGenerator(player, newWorld, bunkerInstance);
 
                         // Teleport player
                         Location spawn = newWorld.getSpawnLocation();
@@ -102,9 +108,5 @@ public class AdminManager {
             }
         }.runTaskTimer(plugin, 0L, 0L);
     }
-
-//    public void updateBunker() {
-//
-//    }
 
 }

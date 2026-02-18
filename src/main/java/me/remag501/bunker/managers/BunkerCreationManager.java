@@ -11,6 +11,10 @@ import com.sk89q.worldguard.protection.regions.GlobalProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
 import me.remag501.bunker.Bunker;
 import me.remag501.bunker.core.BunkerInstance;
+import me.remag501.bunker.service.GeneratorService;
+import me.remag501.bunker.service.HologramService;
+import me.remag501.bunker.service.NPCService;
+import me.remag501.bunker.service.SchematicService;
 import org.bukkit.*;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -22,15 +26,28 @@ import java.util.Set;
 import java.util.UUID;
 
 public class BunkerCreationManager {
-    private final Bunker plugin;
-    private final Set<UUID> runningTasks = new HashSet<>();
-    private final BunkerConfigManager bunkerConfigManager;
-    private final ConfigManager bunkerConfig;
 
-    public BunkerCreationManager(Bunker plugin, BunkerConfigManager bunkerConfigManager) {
+    private final Bunker plugin;
+    private final ConfigManager bunkerConfig;
+    private final BunkerConfigManager bunkerConfigManager;
+    private final GeneratorService generatorService;
+    private final HologramService hologramService;
+    private final NPCService npcService;
+    private final SchematicService schematicService;
+
+    private final Set<UUID> runningTasks = new HashSet<>();
+
+    public BunkerCreationManager(Bunker plugin, ConfigManager bunkerConfig, BunkerConfigManager bunkerConfigManager, GeneratorService generatorService,
+                                 HologramService hologramService, NPCService npcService, SchematicService schematicService) {
         this.plugin = plugin;
+        this.bunkerConfig = bunkerConfig;
         this.bunkerConfigManager = bunkerConfigManager;
-        this.bunkerConfig = new ConfigManager(plugin, "bunkers.yml");
+        this.generatorService = generatorService;
+        this.hologramService = hologramService;
+        this.npcService = npcService;
+        this.schematicService = schematicService;
+
+//        this.bunkerConfig = new ConfigManager(plugin, "bunkers.yml");
     }
 
     // ---------------- Bunker Assignment & Config Access ----------------
@@ -99,7 +116,7 @@ public class BunkerCreationManager {
         // Add generators to bunker (needs to belong to player)
         BunkerInstance bunkerInstance = bunkerConfigManager.getBunkerInstance("main");
         World world = Bukkit.getWorld(getWorldName(playerName));
-        GeneratorManager.createGenerator(Bukkit.getPlayer(playerName), world, bunkerInstance);
+        generatorService.createGenerator(Bukkit.getPlayer(playerName), world, bunkerInstance);
 
         return true;
     }
@@ -218,11 +235,11 @@ public class BunkerCreationManager {
                 setupWorldGuardFlags(world);
 
                 // 4. Schematic Phase
-                SchematicManager.addSchematic(plugin, bunkerInstance, worldName);
+                schematicService.addSchematic(bunkerInstance, worldName);
 
                 // 5. Citizens/Hologram Phase
-                NPCManager.addNPC(plugin, worldName, bunkerInstance);
-                HologramManager.addHologram(bunkerInstance, world);
+                npcService.addNPC(worldName, bunkerInstance);
+                hologramService.addHologram(bunkerInstance, world);
 
                 plugin.getLogger().info("Successfully initialized all systems for " + worldName);
             });
@@ -230,7 +247,7 @@ public class BunkerCreationManager {
     }
 
     private void applyWorldSettings(World world, MultiverseWorld mvWorld) {
-        Location newSpawn = BunkerConfigManager.getSpawnLocation();
+        Location newSpawn = bunkerConfigManager.getSpawnLocation();
         if (mvWorld != null) {
             mvWorld.setAdjustSpawn(false);
             mvWorld.setSpawnLocation(newSpawn);
@@ -302,19 +319,19 @@ public class BunkerCreationManager {
         }
 
         // Add schematic
-        SchematicManager.addSchematic(plugin, bunkerInstance, world.getName());
+        schematicService.addSchematic(bunkerInstance, world.getName());
 
         // Add NPC
-        NPCManager.addNPC(plugin, world.getName(), bunkerInstance);
+        npcService.addNPC(world.getName(), bunkerInstance);
 
         // Add generator
-        GeneratorManager.createGenerator(player, world, bunkerInstance);
+        generatorService.createGenerator(player, world, bunkerInstance);
 
         // Add hologram to world
-        HologramManager.addHologram(bunkerInstance, world);
+        hologramService.addHologram(bunkerInstance, world);
 
         // Remove holograms from world
-        HologramManager.removeHolograms(bunkerInstance, world.getName());
+        hologramService.removeHolograms(bunkerInstance, world.getName());
 
         Bukkit.getLogger().info("Bunker in world " + world.getName() + " upgraded to level " + bunkerLevel + ".");
         return true;
