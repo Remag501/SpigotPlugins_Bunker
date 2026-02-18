@@ -14,18 +14,14 @@ import org.bukkit.entity.Player;
 
 public class BunkerAdminCommand implements CommandExecutor {
 
-    private final Bunker plugin;
     private final BunkerConfigManager bunkerConfigManager;
-//    private final VisitRequestManager visitRequestManager;
     private final BunkerCreationManager bunkerCreationManager;
     private final AdminManager adminManager;
 
-    public BunkerAdminCommand(Bunker plugin, BunkerConfigManager configManger, BunkerCreationManager bunkerCreationManager) {
-        this.plugin = plugin;
+    public BunkerAdminCommand(BunkerConfigManager configManger, BunkerCreationManager bunkerCreationManager, AdminManager adminManager) {
         this.bunkerConfigManager = configManger;
-//        this.visitRequestManager = new VisitRequestManager(plugin);
         this.bunkerCreationManager = bunkerCreationManager;
-        this.adminManager = new AdminManager(plugin, bunkerCreationManager);
+        this.adminManager = adminManager;
     }
 
     @Override
