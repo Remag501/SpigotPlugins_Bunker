@@ -1,6 +1,10 @@
 package me.remag501.bunker;
 
 import com.sk89q.worldguard.WorldGuard;
+import me.remag501.bgscore.api.BGSApi;
+import me.remag501.bgscore.api.command.CommandService;
+import me.remag501.bgscore.api.event.EventService;
+import me.remag501.bgscore.api.task.TaskService;
 import me.remag501.bunker.commands.BunkerAdminCommand;
 import me.remag501.bunker.commands.BunkerCommand;
 //import me.remag501.bunker.commands.BunkerCommandOld;
@@ -21,6 +25,12 @@ public final class Bunker extends JavaPlugin {
         // Plugin startup logic
         saveDefaultConfig();
         ConfigManager configManager = new ConfigManager(this, "bunkers.yml");
+        BunkerConfigManager bunkerConfigManager = new BunkerConfigManager(this);
+
+        // Get services from BGS Core API
+        EventService eventService = BGSApi.events();
+        TaskService taskService = BGSApi.tasks();
+        CommandService commandService = BGSApi.commands();
 
         // Create services
         HologramService hologramService = new HologramService();
@@ -30,7 +40,6 @@ public final class Bunker extends JavaPlugin {
         WorldGuardService worldGuardService = new WorldGuardService(this);
 
         // Create managers
-        BunkerConfigManager bunkerConfigManager = new BunkerConfigManager(this);
         BunkerCreationManager bunkerCreationManager = new BunkerCreationManager(this, configManager,
                 bunkerConfigManager, generatorService, hologramService, npcService, schematicService, worldGuardService);
         AdminManager adminManager = new AdminManager(this, bunkerCreationManager, hologramService, generatorService);

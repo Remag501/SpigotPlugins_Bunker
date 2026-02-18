@@ -12,47 +12,45 @@ import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.session.ClipboardHolder;
+import me.remag501.bgscore.api.task.TaskService;
 import me.remag501.bunker.core.BunkerInstance;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.plugin.Plugin;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class SchematicService {
 
-    private final Plugin plugin;
+    private final TaskService taskService;
 
-    public SchematicService(Plugin plugin) {
-        this.plugin = plugin;
+    public SchematicService(TaskService taskService) {
+        this.taskService = taskService;
     }
 
     public void addSchematic(BunkerInstance bunkerInstance, String worldName) {
-        new BukkitRunnable() {
-            int attempts = 0;
+        AtomicInteger attempts = new AtomicInteger();
 
-            @Override
-            public void run() {
-                World world = Bukkit.getWorld(worldName);
-                if (world != null) {
-                    this.cancel();
-                    // Move to main thread for WorldEdit operations
-                    Bukkit.getScheduler().runTask(plugin, () -> {
-                        for (BunkerInstance.SchematicWrapper wrapper : bunkerInstance.getSchematics()) {
-                            paste(world, wrapper);
-                        }
-                        plugin.getLogger().info("Pasted all schematics for bunker world: " + worldName);
-                    });
-                } else if (++attempts >= 100) {
-                    this.cancel();
-                    plugin.getLogger().warning("World " + worldName + " failed to load. Paste aborted.");
-                }
+        taskService.subscribe(null, "schematic-" + worldName, 0, 20, false, (ticks) -> {
+            World world = Bukkit.getWorld(worldName);
+            if (world != null) {
+                // Move to main thread for WorldEdit operations
+                taskService.delay(0, () -> {
+                    for (BunkerInstance.SchematicWrapper wrapper : bunkerInstance.getSchematics()) {
+                        paste(world, wrapper);
+                    }
+                    Bukkit.getLogger().info("Pasted all schematics for bunker world: " + worldName);
+                });
+                return false;
+            } else if (attempts.incrementAndGet() >= 100) {
+                Bukkit.getLogger().warning("World " + worldName + " failed to load. Paste aborted.");
+                return false;
             }
-        }.runTaskTimerAsynchronously(plugin, 0L, 20L);
+            return true;
+        });
     }
 
     private void paste(World world, BunkerInstance.SchematicWrapper wrapper) {
@@ -74,7 +72,7 @@ public class SchematicService {
 
             Operations.complete(operation);
         } catch (WorldEditException e) {
-            plugin.getLogger().severe("WorldEdit error while pasting: " + e.getMessage());
+            Bukkit.getLogger().severe("WorldEdit error while pasting: " + e.getMessage());
         }
     }
 

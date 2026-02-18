@@ -1,5 +1,6 @@
 package me.remag501.bunker.managers;
 
+import me.remag501.bgscore.api.task.TaskService;
 import me.remag501.bunker.Bunker;
 import me.remag501.bunker.core.BunkerInstance;
 import me.remag501.bunker.service.*;
@@ -20,7 +21,7 @@ import java.util.UUID;
 
 public class BunkerCreationManager {
 
-    private final Bunker plugin;
+    private final TaskService taskService;
     private final ConfigManager bunkerConfig;
     private final BunkerConfigManager bunkerConfigManager;
     private final GeneratorService generatorService;
@@ -31,9 +32,9 @@ public class BunkerCreationManager {
 
     private final Set<UUID> runningTasks = new HashSet<>();
 
-    public BunkerCreationManager(Bunker plugin, ConfigManager bunkerConfig, BunkerConfigManager bunkerConfigManager, GeneratorService generatorService,
+    public BunkerCreationManager(TaskService taskService, ConfigManager bunkerConfig, BunkerConfigManager bunkerConfigManager, GeneratorService generatorService,
                                  HologramService hologramService, NPCService npcService, SchematicService schematicService, WorldGuardService worldGuardService) {
-        this.plugin = plugin;
+        this.taskService = taskService;
         this.bunkerConfig = bunkerConfig;
         this.bunkerConfigManager = bunkerConfigManager;
         this.generatorService = generatorService;
@@ -73,7 +74,7 @@ public class BunkerCreationManager {
         // Update bunker config to show upgrades
         String playerName = player.getName();
         List<String> upgrades = bunkerConfig.getConfig().getStringList(playerName.toUpperCase() + ".upgrades");
-        plugin.getLogger().info(upgrades.toString());
+        Bukkit.getLogger().info(upgrades.toString());
         if (!upgrades.contains(bunkerLevel)) {
             upgrades.add(bunkerLevel);
             bunkerConfig.getConfig().set(playerName.toUpperCase() + ".upgrades", upgrades);
@@ -132,74 +133,77 @@ public class BunkerCreationManager {
         int oldTotal = getTotalBunkers();
         setTotalBunkers(oldTotal + count);
 
-        // Process one by one to prevent WorldGuard/Citizens collisions
-        new BukkitRunnable() {
-            int i = 0;
+        // Using your TaskService
+        // UUID: playerId (so it's owned by them)
+        // Category: "bunker-batch" (keeps it specific)
+        // Delay: 0, Interval: 60 (3 seconds)
+        taskService.subscribe(playerId, "bunker-batch", 0, 60, (iteration) -> {
+            // 'iteration' is the 'elapsed' count from your TaskManager
 
-            @Override
-            public void run() {
-                if (i >= count) {
-                    sender.sendMessage(ChatColor.GREEN + "Successfully created " + count + " bunkers.");
-                    bunkerConfig.reload();
-                    runningTasks.remove(playerId);
-                    cancel();
-                    return;
-                }
-
-                String worldName = "bunker_" + (oldTotal + i);
-
-                // Trigger creation and content setup
-                createBunkerWorld(worldName);
-
-                i++;
+            // 1. Check if we are finished
+            if (iteration >= count) {
+                sender.sendMessage(ChatColor.GREEN + "Successfully created " + count + " bunkers.");
+                bunkerConfig.reload();
+                runningTasks.remove(playerId);
+                return true; // Terminate the task
             }
-        }.runTaskTimer(plugin, 0L, 60L); // 3-second gap for safety
+
+            // 2. Determine the specific world number
+            String worldName = "bunker_" + (oldTotal + iteration);
+
+            // 3. Trigger creation
+            player.sendMessage(ChatColor.GRAY + "Generating " + worldName + "... (" + (iteration + 1) + "/" + count + ")");
+            createBunkerWorld(worldName);
+
+            return false; // Continue to next interval
+        });
 
         return true;
     }
 
     public void createBunkerWorld(String worldName) {
-        plugin.getLogger().info("Initializing creation for: " + worldName);
+        Bukkit.getLogger().info("Initializing creation for: " + worldName);
         BunkerInstance bunkerInstance = bunkerConfigManager.getBunkerInstance("main");
 
-        // 1. Get the modern API instance
         MultiverseCoreApi mvApi = MultiverseCoreApi.get();
         WorldManager worldManager = mvApi.getWorldManager();
 
-        // 2. Check if world exists using the modern WorldManager
+        // 1. Create the world if it doesn't exist
         if (worldManager.getWorld(worldName).isEmpty()) {
-
-            // 3. Use the Builder Pattern (CreateWorldOptions)
             CreateWorldOptions options = CreateWorldOptions.worldName(worldName)
                     .environment(World.Environment.NORMAL)
                     .worldType(WorldType.FLAT)
-                    .generator("VoidGen") // Your generator string
+                    .generator("VoidGen")
                     .generateStructures(false);
 
-            // 4. Create the world
             var result = worldManager.createWorld(options);
 
             if (result.isFailure()) {
-                plugin.getLogger().severe("Multiverse failed to create " + worldName + ": " + result.getFailureReason());
+                Bukkit.getLogger().severe("Multiverse failed to create " + worldName + ": " + result.getFailureReason());
                 return;
             }
         }
 
-        // 2. We MUST wait for the world to be loaded in Bukkit's memory
-        // Before running WorldGuard or Citizens logic.
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                World world = Bukkit.getWorld(worldName);
-                if (world == null) {
-                    plugin.getLogger().warning("World " + worldName + " not yet visible to Bukkit. Retrying content load...");
-                    return; // The task will repeat or we can schedule a one-off later
-                }
+        // 2. Wait for the world to be loaded using TaskService
+        // Owner: null (System task), Category: unique per world
+        // Delay: 5 ticks, Interval: 10 ticks (0.5s)
+        taskService.subscribe(null, "world-init-" + worldName, 5, 10, (iterations) -> {
+            World world = Bukkit.getWorld(worldName);
 
+            if (world != null) {
                 setupWorldContent(world, bunkerInstance);
-                cancel();
+                return true; // Stop the task
             }
-        }.runTaskTimer(plugin, 5L, 10L);
+
+            // Optional: Timeout after 30 seconds (60 iterations at 10 ticks each)
+            if (iterations >= 60) {
+                Bukkit.getLogger().severe("Timed out waiting for world: " + worldName);
+                return true;
+            }
+
+            Bukkit.getLogger().warning("World " + worldName + " not yet visible. Retrying...");
+            return false; // Keep checking
+        });
     }
 
     public void setupWorldContent(World world, BunkerInstance bunkerInstance) {
@@ -217,8 +221,7 @@ public class BunkerCreationManager {
         // will have recognized the new world instance.
         world.getChunkAtAsync(world.getSpawnLocation()).thenAccept(chunk -> {
 
-            // Return to sync thread for API interactions (WG, Citizens, etc.)
-            Bukkit.getScheduler().runTask(plugin, () -> {
+            taskService.delay(0, () -> {
 
                 // 3. WorldGuard Phase
                 // Now that the world is loaded/ticked, the RegionManager is guaranteed to exist
@@ -231,8 +234,10 @@ public class BunkerCreationManager {
                 npcService.addNPC(worldName, bunkerInstance);
                 hologramService.addHologram(bunkerInstance, world);
 
-                plugin.getLogger().info("Successfully initialized all systems for " + worldName);
+                Bukkit.getLogger().info("Successfully initialized all systems for " + worldName);
+
             });
+
         });
     }
 

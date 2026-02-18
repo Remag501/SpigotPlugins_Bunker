@@ -3,6 +3,7 @@ package me.remag501.bunker.service;
 import com.muhammaddaffa.nextgens.NextGens;
 import com.muhammaddaffa.nextgens.generators.ActiveGenerator;
 import com.muhammaddaffa.nextgens.generators.Generator;
+import me.remag501.bgscore.api.task.TaskService;
 import me.remag501.bunker.core.BunkerInstance;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -16,10 +17,10 @@ import java.util.List;
 
 public class GeneratorService {
 
-    private Plugin plugin;
+    private TaskService taskService;
 
-    public GeneratorService(Plugin plugin) {
-        this.plugin = plugin;
+    public GeneratorService(TaskService taskService) {
+        this.taskService = taskService;
     }
 
     public void createGenerator(Player player, World world, BunkerInstance bunkerInstance) {
@@ -61,13 +62,10 @@ public class GeneratorService {
                     ActiveGenerator activeGenerator = manager.registerGenerator(player, generator, block);
                     double mainTimer = activeGenerator.getTimer();
                     activeGenerator.setTimer(20); // Make it spawn instantly
-                    new BukkitRunnable() {
 
-                        @Override
-                        public void run() {
-                            activeGenerator.setTimer(mainTimer);
-                        }
-                    }.runTaskLater(plugin, 20);
+                    taskService.delay(20, () -> {
+                        activeGenerator.setTimer(mainTimer);
+                    });
 
                     activeGenerator.setTimer(20);
                     activeGenerator.setCorrupted(false);

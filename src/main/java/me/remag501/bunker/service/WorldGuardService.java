@@ -8,14 +8,12 @@ import com.sk89q.worldguard.protection.regions.GlobalProtectedRegion;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
 import me.remag501.bunker.Bunker;
+import org.bukkit.Bukkit;
 import org.bukkit.World;
 
 public class WorldGuardService {
 
-    private final Bunker plugin;
-
-    public WorldGuardService(Bunker plugin) {
-        this.plugin = plugin;
+    public WorldGuardService() {
     }
 
     public void setupBunkerFlags(World world) {
@@ -24,7 +22,7 @@ public class WorldGuardService {
             RegionManager regionManager = container.get(BukkitAdapter.adapt(world));
 
             if (regionManager == null) {
-                plugin.getLogger().warning("Could not access RegionManager for world: " + world.getName());
+                Bukkit.getLogger().warning("Could not access RegionManager for world: " + world.getName());
                 return;
             }
 
@@ -35,10 +33,10 @@ public class WorldGuardService {
             }
 
             applyFlags(globalRegion);
-            plugin.getLogger().info("Applied bunker WorldGuard flags to " + world.getName());
+            Bukkit.getLogger().info("Applied bunker WorldGuard flags to " + world.getName());
 
         } catch (Exception e) {
-            plugin.getLogger().severe("Failed to setup WorldGuard flags for " + world.getName() + ": " + e.getMessage());
+            Bukkit.getLogger().severe("Failed to setup WorldGuard flags for " + world.getName() + ": " + e.getMessage());
         }
     }
 
