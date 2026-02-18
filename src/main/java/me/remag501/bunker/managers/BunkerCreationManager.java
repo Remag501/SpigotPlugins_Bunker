@@ -1,14 +1,5 @@
 package me.remag501.bunker.managers;
 
-import com.onarandombox.MultiverseCore.MultiverseCore;
-import com.onarandombox.MultiverseCore.api.MVWorldManager;
-import com.onarandombox.MultiverseCore.api.MultiverseWorld;
-import com.sk89q.worldedit.bukkit.BukkitAdapter;
-import com.sk89q.worldguard.WorldGuard;
-import com.sk89q.worldguard.protection.flags.StateFlag;
-import com.sk89q.worldguard.protection.managers.RegionManager;
-import com.sk89q.worldguard.protection.regions.GlobalProtectedRegion;
-import com.sk89q.worldguard.protection.regions.RegionContainer;
 import me.remag501.bunker.Bunker;
 import me.remag501.bunker.core.BunkerInstance;
 import me.remag501.bunker.service.*;
@@ -16,6 +7,11 @@ import org.bukkit.*;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.mvplugins.multiverse.core.MultiverseCore;
+import org.mvplugins.multiverse.core.MultiverseCoreApi;
+import org.mvplugins.multiverse.core.world.MultiverseWorld;
+import org.mvplugins.multiverse.core.world.WorldManager;
+import org.mvplugins.multiverse.core.world.options.CreateWorldOptions;
 
 import java.util.HashSet;
 import java.util.List;
@@ -166,21 +162,25 @@ public class BunkerCreationManager {
         plugin.getLogger().info("Initializing creation for: " + worldName);
         BunkerInstance bunkerInstance = bunkerConfigManager.getBunkerInstance("main");
 
-        MultiverseCore multiverseCore = (MultiverseCore) Bukkit.getPluginManager().getPlugin("Multiverse-Core");
-        MVWorldManager worldManager = multiverseCore.getMVWorldManager();
+        // 1. Get the modern API instance
+        MultiverseCoreApi mvApi = MultiverseCoreApi.get();
+        WorldManager worldManager = mvApi.getWorldManager();
 
-        // 1. Trigger Multiverse to create the world
-        if (worldManager.getMVWorld(worldName) == null) {
-            boolean success = worldManager.addWorld(
-                    worldName,
-                    World.Environment.NORMAL,
-                    null,
-                    WorldType.FLAT,
-                    false,
-                    "VoidGen"
-            );
-            if (!success) {
-                plugin.getLogger().severe("Multiverse failed to create " + worldName);
+        // 2. Check if world exists using the modern WorldManager
+        if (worldManager.getWorld(worldName).isEmpty()) {
+
+            // 3. Use the Builder Pattern (CreateWorldOptions)
+            CreateWorldOptions options = CreateWorldOptions.worldName(worldName)
+                    .environment(World.Environment.NORMAL)
+                    .worldType(WorldType.FLAT)
+                    .generator("VoidGen") // Your generator string
+                    .generateStructures(false);
+
+            // 4. Create the world
+            var result = worldManager.createWorld(options);
+
+            if (result.isFailure()) {
+                plugin.getLogger().severe("Multiverse failed to create " + worldName + ": " + result.getFailureReason());
                 return;
             }
         }
@@ -204,11 +204,10 @@ public class BunkerCreationManager {
 
     public void setupWorldContent(World world, BunkerInstance bunkerInstance) {
         String worldName = world.getName();
-        MultiverseCore multiverseCore = (MultiverseCore) Bukkit.getPluginManager().getPlugin("Multiverse-Core");
-        if (multiverseCore == null) return;
+        MultiverseCoreApi mvApi = MultiverseCoreApi.get();
 
-        MVWorldManager worldManager = multiverseCore.getMVWorldManager();
-        MultiverseWorld mvWorld = worldManager.getMVWorld(world);
+        WorldManager worldManager = mvApi.getWorldManager();
+        MultiverseWorld mvWorld = worldManager.getWorld(world).getOrNull();
 
         // 1. Core Bukkit/MV Settings (Safe to do immediately)
         applyWorldSettings(world, mvWorld);
