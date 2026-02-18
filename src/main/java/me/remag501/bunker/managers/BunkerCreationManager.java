@@ -222,12 +222,20 @@ public class BunkerCreationManager {
         // 2. Wait for the World to be "Ready"
         // We target the spawn chunk. When this completes, the world is ticked and WorldGuard
         // will have recognized the new world instance.
-        world.getChunkAtAsync(world.getSpawnLocation()).thenAccept(chunk -> {
 
-            taskService.delay(0, () -> {
+        Location spawn = world.getSpawnLocation();
+        int chunkX = spawn.getBlockX() >> 4;
+        int chunkZ = spawn.getBlockZ() >> 4;
+
+        // 1. Force the chunk to load and STAY loaded during setup
+        world.setChunkForceLoaded(chunkX, chunkZ, true);
+
+        // 2. Use the standard getChunkAtAsync or simply a small delay
+        // Now that it's force-loaded, the callback WILL fire.
+        world.getChunkAtAsync(spawn).thenAccept(chunk -> {
+            taskService.delay(1, () -> { // Give it 1 tick to stabilize
 
                 // 3. WorldGuard Phase
-                // Now that the world is loaded/ticked, the RegionManager is guaranteed to exist
                 worldGuardService.setupBunkerFlags(world);
 
                 // 4. Schematic Phase
@@ -237,10 +245,11 @@ public class BunkerCreationManager {
                 npcService.addNPC(worldName, bunkerInstance);
                 hologramService.addHologram(bunkerInstance, world);
 
+                // 6. Cleanup: Unforce the chunk so we don't leak memory with 100 worlds
+                world.setChunkForceLoaded(chunkX, chunkZ, false);
+
                 logger.info("Successfully initialized all systems for " + worldName);
-
             });
-
         });
     }
 

@@ -33,7 +33,7 @@ public class NPCService {
             if (world != null) {
                 // We are SYNC here because taskService.subscribe is sync
                 List<BunkerInstance.NPCInfo> npcs = bunkerInstance.getNpcs();
-                if (npcs == null || npcs.isEmpty()) return false;
+                if (npcs == null || npcs.isEmpty()) return true;
 
                 for (BunkerInstance.NPCInfo info : npcs) {
                     Location loc = info.location;
@@ -43,7 +43,7 @@ public class NPCService {
                     // 1. Request the chunk ASYNC first
                     world.getChunkAtAsync(loc).thenRun(() -> {
                         // 2. Jump back to SYNC to modify the world/NPCs
-                        taskService.delay(0, () -> {
+                        taskService.delay(1, () -> {
                             // NOW it's safe and fast to place the barrier
                             // Because getChunkAtAsync just finished, we know the chunk is in memory
                             loc.getBlock().getRelative(BlockFace.DOWN).setType(Material.BARRIER);
@@ -58,14 +58,14 @@ public class NPCService {
                         });
                     });
                 }
-                return false; // Stop the subscription timer
+                return true; // Stop the subscription timer
             }
 
             if (++attempts[0] >= maxAttempts) {
                 logger.warning("NPC spawn timed out for " + worldName);
-                return false;
+                return true;
             }
-            return true; // Keep checking
+            return false; // Keep checking
         });
     }
 

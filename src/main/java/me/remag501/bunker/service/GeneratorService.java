@@ -30,7 +30,7 @@ public class GeneratorService {
         // 1. Get the NextGens API/Instance
         NextGens nextGensPlugin = NextGens.getInstance();
         if (nextGensPlugin == null) {
-            logger.warning("[Bunker] NextGens instance is null!");
+            logger.warning("NextGens instance is null!");
             return;
         }
 
@@ -50,7 +50,7 @@ public class GeneratorService {
             // 3. Find the generator template
             Generator generator = manager.getGenerator(type);
             if (generator == null) {
-                logger.warning("[Bunker] Generator type '" + type + "' not found in NextGens!");
+                logger.warning("Generator type '" + type + "' not found in NextGens!");
                 continue;
             }
 
@@ -74,9 +74,9 @@ public class GeneratorService {
                     activeGenerator.setCorrupted(false);
 
 
-                    logger.info("[Bunker] Registered " + type + " at " + loc.getBlockX() + ", " + loc.getBlockY() + ", " + loc.getBlockZ());
+                    logger.info("Registered " + type + " at " + loc.getBlockX() + ", " + loc.getBlockY() + ", " + loc.getBlockZ());
                 } catch (Exception e) {
-                    logger.severe("[Bunker] Failed to register generator: " + e.getMessage());
+                    logger.severe("Failed to register generator: " + e.getMessage());
                     e.printStackTrace();
                 }
             });

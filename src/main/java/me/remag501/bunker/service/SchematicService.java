@@ -43,18 +43,18 @@ public class SchematicService {
             World world = Bukkit.getWorld(worldName);
             if (world != null) {
                 // Move to main thread for WorldEdit operations
-                taskService.delay(0, () -> {
+                taskService.delay(1, () -> {
                     for (BunkerInstance.SchematicWrapper wrapper : bunkerInstance.getSchematics()) {
                         paste(world, wrapper);
                     }
                     logger.info("Pasted all schematics for bunker world: " + worldName);
                 });
-                return false;
+                return true;
             } else if (attempts.incrementAndGet() >= 100) {
                 logger.warning("World " + worldName + " failed to load. Paste aborted.");
-                return false;
+                return true;
             }
-            return true;
+            return false;
         });
     }
 
