@@ -1,8 +1,8 @@
 package me.remag501.bunker.core;
 
-import me.remag501.bunker.util.SchematicUtil;
 import org.bukkit.Location;
 
+import java.io.File;
 import java.util.List;
 
 public class BunkerInstance {
@@ -69,11 +69,11 @@ public class BunkerInstance {
     }
 
     public static class SchematicWrapper {
-        public SchematicUtil schematic;
-        public Location location;
+        public File file; // Store the file reference directly
+        public Location location; // The relative location from config
 
-        public SchematicWrapper(SchematicUtil schematic, Location location) {
-            this.schematic = schematic;
+        public SchematicWrapper(File file, Location location) {
+            this.file = file;
             this.location = location;
         }
     }

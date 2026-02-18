@@ -2,7 +2,6 @@ package me.remag501.bunker.managers;
 
 import me.remag501.bunker.Bunker;
 import me.remag501.bunker.core.BunkerInstance;
-import me.remag501.bunker.util.SchematicUtil;
 import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
