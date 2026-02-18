@@ -9,8 +9,15 @@ import org.bukkit.Location;
 import org.bukkit.World;
 
 import java.util.List;
+import java.util.logging.Logger;
 
 public class HologramService {
+
+    private final Logger logger;
+
+    public HologramService(Logger logger) {
+        this.logger = logger;
+    }
 
     public void addHologram(BunkerInstance bunkerInstance, World world) {
         List<BunkerInstance.HologramInfo> holograms = bunkerInstance.getHolograms();
@@ -24,7 +31,7 @@ public class HologramService {
 
             Hologram template = DHAPI.getHologram(type);
             if (template == null) {
-                Bukkit.getLogger().warning("Template hologram '" + type + "' not found. Skipping.");
+                logger.warning("Template hologram '" + type + "' not found. Skipping.");
                 continue;
             }
 
@@ -34,14 +41,14 @@ public class HologramService {
             clone.save();
             DecentHologramsAPI.get().getHologramManager().registerHologram(clone);
 
-            Bukkit.getLogger().info("Cloned hologram '" + templateName + "' as '" + cloneName + "' at " + targetLocation);
+            logger.info("Cloned hologram '" + templateName + "' as '" + cloneName + "' at " + targetLocation);
         }
     }
 
     public void removeHologram(String hologramName) {
         Hologram hologram = DHAPI.getHologram(hologramName);
         if (hologram == null) {
-            Bukkit.getLogger().warning("Hologram " + hologramName + " not found, cannot delete.");
+            logger.warning("Hologram " + hologramName + " not found, cannot delete.");
             return;
         }
         hologram.delete();

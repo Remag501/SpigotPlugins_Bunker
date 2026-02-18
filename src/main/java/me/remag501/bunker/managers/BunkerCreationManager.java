@@ -18,10 +18,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.logging.Logger;
 
 public class BunkerCreationManager {
 
     private final TaskService taskService;
+    private final Logger logger;
     private final ConfigManager bunkerConfig;
     private final BunkerConfigManager bunkerConfigManager;
     private final GeneratorService generatorService;
@@ -32,9 +34,10 @@ public class BunkerCreationManager {
 
     private final Set<UUID> runningTasks = new HashSet<>();
 
-    public BunkerCreationManager(TaskService taskService, ConfigManager bunkerConfig, BunkerConfigManager bunkerConfigManager, GeneratorService generatorService,
+    public BunkerCreationManager(TaskService taskService, Logger logger, ConfigManager bunkerConfig, BunkerConfigManager bunkerConfigManager, GeneratorService generatorService,
                                  HologramService hologramService, NPCService npcService, SchematicService schematicService, WorldGuardService worldGuardService) {
         this.taskService = taskService;
+        this.logger = logger;
         this.bunkerConfig = bunkerConfig;
         this.bunkerConfigManager = bunkerConfigManager;
         this.generatorService = generatorService;
@@ -162,7 +165,7 @@ public class BunkerCreationManager {
     }
 
     public void createBunkerWorld(String worldName) {
-        Bukkit.getLogger().info("Initializing creation for: " + worldName);
+        logger.info("Initializing creation for: " + worldName);
         BunkerInstance bunkerInstance = bunkerConfigManager.getBunkerInstance("main");
 
         MultiverseCoreApi mvApi = MultiverseCoreApi.get();
@@ -179,7 +182,7 @@ public class BunkerCreationManager {
             var result = worldManager.createWorld(options);
 
             if (result.isFailure()) {
-                Bukkit.getLogger().severe("Multiverse failed to create " + worldName + ": " + result.getFailureReason());
+                logger.severe("Multiverse failed to create " + worldName + ": " + result.getFailureReason());
                 return;
             }
         }
@@ -197,11 +200,11 @@ public class BunkerCreationManager {
 
             // Optional: Timeout after 30 seconds (60 iterations at 10 ticks each)
             if (iterations >= 60) {
-                Bukkit.getLogger().severe("Timed out waiting for world: " + worldName);
+                logger.severe("Timed out waiting for world: " + worldName);
                 return true;
             }
 
-            Bukkit.getLogger().warning("World " + worldName + " not yet visible. Retrying...");
+            logger.warning("World " + worldName + " not yet visible. Retrying...");
             return false; // Keep checking
         });
     }
@@ -234,7 +237,7 @@ public class BunkerCreationManager {
                 npcService.addNPC(worldName, bunkerInstance);
                 hologramService.addHologram(bunkerInstance, world);
 
-                Bukkit.getLogger().info("Successfully initialized all systems for " + worldName);
+                logger.info("Successfully initialized all systems for " + worldName);
 
             });
 
@@ -258,7 +261,7 @@ public class BunkerCreationManager {
         // Get the BunkerInstance for the world
         BunkerInstance bunkerInstance = bunkerConfigManager.getBunkerInstance(bunkerLevel);
         if (bunkerInstance == null) {
-            Bukkit.getLogger().warning("No bunker instance found for world: " + world.getName());
+            logger.warning("No bunker instance found for world: " + world.getName());
             return false;
         }
 
@@ -277,7 +280,7 @@ public class BunkerCreationManager {
         // Remove holograms from world
         hologramService.removeHolograms(bunkerInstance, world.getName());
 
-        Bukkit.getLogger().info("Bunker in world " + world.getName() + " upgraded to level " + bunkerLevel + ".");
+        logger.info("Bunker in world " + world.getName() + " upgraded to level " + bunkerLevel + ".");
         return true;
     }
 }

@@ -14,20 +14,23 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.List;
+import java.util.logging.Logger;
 
 public class GeneratorService {
 
-    private TaskService taskService;
+    private final TaskService taskService;
+    private final Logger logger;
 
-    public GeneratorService(TaskService taskService) {
+    public GeneratorService(TaskService taskService, Logger logger) {
         this.taskService = taskService;
+        this.logger = logger;
     }
 
     public void createGenerator(Player player, World world, BunkerInstance bunkerInstance) {
         // 1. Get the NextGens API/Instance
         NextGens nextGensPlugin = NextGens.getInstance();
         if (nextGensPlugin == null) {
-            Bukkit.getLogger().warning("[Bunker] NextGens instance is null!");
+            logger.warning("[Bunker] NextGens instance is null!");
             return;
         }
 
@@ -47,7 +50,7 @@ public class GeneratorService {
             // 3. Find the generator template
             Generator generator = manager.getGenerator(type);
             if (generator == null) {
-                Bukkit.getLogger().warning("[Bunker] Generator type '" + type + "' not found in NextGens!");
+                logger.warning("[Bunker] Generator type '" + type + "' not found in NextGens!");
                 continue;
             }
 
@@ -71,9 +74,9 @@ public class GeneratorService {
                     activeGenerator.setCorrupted(false);
 
 
-                    Bukkit.getLogger().info("[Bunker] Registered " + type + " at " + loc.getBlockX() + ", " + loc.getBlockY() + ", " + loc.getBlockZ());
+                    logger.info("[Bunker] Registered " + type + " at " + loc.getBlockX() + ", " + loc.getBlockY() + ", " + loc.getBlockZ());
                 } catch (Exception e) {
-                    Bukkit.getLogger().severe("[Bunker] Failed to register generator: " + e.getMessage());
+                    logger.severe("[Bunker] Failed to register generator: " + e.getMessage());
                     e.printStackTrace();
                 }
             });

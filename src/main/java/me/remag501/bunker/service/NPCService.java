@@ -11,13 +11,16 @@ import org.bukkit.World;
 import org.bukkit.block.BlockFace;
 
 import java.util.List;
+import java.util.logging.Logger;
 
 public class NPCService {
 
     private final TaskService taskService;
+    private final Logger logger;
 
-    public NPCService(TaskService taskService) {
+    public NPCService(TaskService taskService, Logger logger) {
         this.taskService = taskService;
+        this.logger = logger;
     }
 
     public void addNPC(String worldName, BunkerInstance bunkerInstance) {
@@ -49,7 +52,7 @@ public class NPCService {
                             if (original != null) {
                                 NPC clone = original.clone();
                                 clone.spawn(loc);
-                                Bukkit.getLogger().info("NPC and Barrier successfully spawned at " + worldName);
+                                logger.info("NPC and Barrier successfully spawned at " + worldName);
                             }
                         });
                     });
@@ -58,7 +61,7 @@ public class NPCService {
             }
 
             if (++attempts[0] >= maxAttempts) {
-                Bukkit.getLogger().warning("NPC spawn timed out for " + worldName);
+                logger.warning("NPC spawn timed out for " + worldName);
                 return false;
             }
             return true; // Keep checking

@@ -11,9 +11,14 @@ import me.remag501.bunker.Bunker;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 
+import java.util.logging.Logger;
+
 public class WorldGuardService {
 
-    public WorldGuardService() {
+    private final Logger logger;
+
+    public WorldGuardService(Logger logger) {
+        this.logger = logger;
     }
 
     public void setupBunkerFlags(World world) {
@@ -22,7 +27,7 @@ public class WorldGuardService {
             RegionManager regionManager = container.get(BukkitAdapter.adapt(world));
 
             if (regionManager == null) {
-                Bukkit.getLogger().warning("Could not access RegionManager for world: " + world.getName());
+                logger.warning("Could not access RegionManager for world: " + world.getName());
                 return;
             }
 
@@ -33,10 +38,10 @@ public class WorldGuardService {
             }
 
             applyFlags(globalRegion);
-            Bukkit.getLogger().info("Applied bunker WorldGuard flags to " + world.getName());
+            logger.info("Applied bunker WorldGuard flags to " + world.getName());
 
         } catch (Exception e) {
-            Bukkit.getLogger().severe("Failed to setup WorldGuard flags for " + world.getName() + ": " + e.getMessage());
+            logger.severe("Failed to setup WorldGuard flags for " + world.getName() + ": " + e.getMessage());
         }
     }
 

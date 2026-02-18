@@ -14,6 +14,7 @@ import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import me.remag501.bgscore.api.task.TaskService;
 import me.remag501.bunker.core.BunkerInstance;
+import org.apache.commons.logging.Log;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -22,13 +23,16 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Logger;
 
 public class SchematicService {
 
     private final TaskService taskService;
+    private final Logger logger;
 
-    public SchematicService(TaskService taskService) {
+    public SchematicService(TaskService taskService, Logger logger) {
         this.taskService = taskService;
+        this.logger = logger;
     }
 
     public void addSchematic(BunkerInstance bunkerInstance, String worldName) {
@@ -42,11 +46,11 @@ public class SchematicService {
                     for (BunkerInstance.SchematicWrapper wrapper : bunkerInstance.getSchematics()) {
                         paste(world, wrapper);
                     }
-                    Bukkit.getLogger().info("Pasted all schematics for bunker world: " + worldName);
+                    logger.info("Pasted all schematics for bunker world: " + worldName);
                 });
                 return false;
             } else if (attempts.incrementAndGet() >= 100) {
-                Bukkit.getLogger().warning("World " + worldName + " failed to load. Paste aborted.");
+                logger.warning("World " + worldName + " failed to load. Paste aborted.");
                 return false;
             }
             return true;
@@ -72,7 +76,7 @@ public class SchematicService {
 
             Operations.complete(operation);
         } catch (WorldEditException e) {
-            Bukkit.getLogger().severe("WorldEdit error while pasting: " + e.getMessage());
+            logger.severe("WorldEdit error while pasting: " + e.getMessage());
         }
     }
 
