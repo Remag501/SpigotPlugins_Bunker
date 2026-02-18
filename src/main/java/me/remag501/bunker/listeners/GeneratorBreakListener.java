@@ -1,20 +1,25 @@
 package me.remag501.bunker.listeners;
 
 import com.muhammaddaffa.nextgens.api.events.generators.GeneratorBreakEvent;
+import me.remag501.bgscore.api.event.EventService;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
-public class GeneratorBreakListener implements Listener {
+public class GeneratorBreakListener {
 
-    @EventHandler
-    public void handleGeneratorBreak(GeneratorBreakEvent event) {
-        Player player = event.getPlayer();
-        if (!player.hasPermission("bunker.breakgen")) {
-//            player.sendMessage("§c§l(!) §cYou can't break your own generator!");
-            event.setCancelled(true);
-        }
+    public GeneratorBreakListener(EventService eventService) {
+        // Register this in your Bunker plugin's initialization logic
+        eventService.subscribe(GeneratorBreakEvent.class)
+                // Filter: Only cancel if they LACK the permission
+                .filter(event -> !event.getPlayer().hasPermission("bunker.breakgen"))
+                .handler(event -> {
+                    // Since the filter passed, we know they don't have permission
+                    event.setCancelled(true);
+
+                    // Optional: If you want to notify them, but keep it quiet by default as in your snippet
+                    // event.getPlayer().sendMessage("§c§l(!) §cYou can't break your own generator!");
+                });
     }
-
 
 }
