@@ -3,7 +3,7 @@ package me.remag501.bunker.commands;
 import me.remag501.bunker.Bunker;
 import me.remag501.bunker.managers.AdminManager;
 import me.remag501.bunker.managers.BunkerCreationManager;
-import me.remag501.bunker.managers.ConfigManager;
+import me.remag501.bunker.managers.BunkerConfigManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.World;
@@ -15,14 +15,14 @@ import org.bukkit.entity.Player;
 public class BunkerAdminCommand implements CommandExecutor {
 
     private final Bunker plugin;
-    private final ConfigManager configManager;
+    private final BunkerConfigManager bunkerConfigManager;
 //    private final VisitRequestManager visitRequestManager;
     private final BunkerCreationManager bunkerCreationManager;
     private final AdminManager adminManager;
 
-    public BunkerAdminCommand(Bunker plugin, ConfigManager configManger, BunkerCreationManager bunkerCreationManager) {
+    public BunkerAdminCommand(Bunker plugin, BunkerConfigManager configManger, BunkerCreationManager bunkerCreationManager) {
         this.plugin = plugin;
-        this.configManager = configManger;
+        this.bunkerConfigManager = configManger;
 //        this.visitRequestManager = new VisitRequestManager(plugin);
         this.bunkerCreationManager = bunkerCreationManager;
         this.adminManager = new AdminManager(plugin, bunkerCreationManager);
@@ -163,7 +163,7 @@ public class BunkerAdminCommand implements CommandExecutor {
                 return true;
 
             case "reload":
-                configManager.reload();
+                bunkerConfigManager.reload();
                 bunkerCreationManager.reloadBunkerConfig();
                 sender.sendMessage("Bunker config reloaded.");
                 sender.sendMessage(bunkerCreationManager.getTotalBunkers() + " " + bunkerCreationManager.getAssignedBunkers());

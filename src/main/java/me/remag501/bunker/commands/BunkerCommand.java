@@ -2,7 +2,7 @@ package me.remag501.bunker.commands;
 
 import me.remag501.bunker.Bunker;
 import me.remag501.bunker.managers.BunkerCreationManager;
-import me.remag501.bunker.managers.ConfigManager;
+import me.remag501.bunker.managers.BunkerConfigManager;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.command.Command;
@@ -12,12 +12,12 @@ import org.bukkit.entity.Player;
 
 public class BunkerCommand implements CommandExecutor {
     private final Bunker plugin;
-    private final ConfigManager configManager;
+    private final BunkerConfigManager bunkerConfigManager;
     private final BunkerCreationManager bunkerCreationManager;
 
-    public BunkerCommand(Bunker plugin, ConfigManager configManager, BunkerCreationManager bunkerCreationManager) {
+    public BunkerCommand(Bunker plugin, BunkerConfigManager bunkerConfigManager, BunkerCreationManager bunkerCreationManager) {
         this.plugin = plugin;
-        this.configManager = configManager;
+        this.bunkerConfigManager = bunkerConfigManager;
         this.bunkerCreationManager = bunkerCreationManager;
     }
 
@@ -37,7 +37,7 @@ public class BunkerCommand implements CommandExecutor {
         if (args.length == 0 || args[0].equalsIgnoreCase("home")) {
             // Teleport to own bunker
             if (!bunkerCreationManager.hasBunker(playerName)) {
-                player.sendMessage(configManager.getMessage("noBunker"));
+                player.sendMessage(bunkerConfigManager.getMessage("noBunker"));
                 return true;
             }
             String worldName = bunkerCreationManager.getWorldName(playerName);
@@ -49,20 +49,20 @@ public class BunkerCommand implements CommandExecutor {
             // Teleport logic, e.g., to spawn or configured coords
             Location loc = bunkerWorld.getSpawnLocation();
             player.teleport(loc);
-            player.sendMessage(configManager.getMessage("homeMsg"));
+            player.sendMessage(bunkerConfigManager.getMessage("homeMsg"));
             return true;
         }
 
         switch (args[0].toLowerCase()) {
             case "buy":
                 if (bunkerCreationManager.hasBunker(playerName)) {
-                    player.sendMessage(configManager.getMessage("alreadyOwnBunker"));
+                    player.sendMessage(bunkerConfigManager.getMessage("alreadyOwnBunker"));
                     return true;
                 }
                 if (bunkerCreationManager.assignBunker(playerName)) {
-                    player.sendMessage(configManager.getMessage("bunkerPurchased"));
+                    player.sendMessage(bunkerConfigManager.getMessage("bunkerPurchased"));
                 } else {
-                    player.sendMessage(configManager.getMessage("outOfBunkers"));
+                    player.sendMessage(bunkerConfigManager.getMessage("outOfBunkers"));
                 }
                 return true;
 
@@ -103,7 +103,7 @@ public class BunkerCommand implements CommandExecutor {
 //                return true;
 
             default:
-                player.sendMessage(configManager.getMessage("argCommandUsage"));
+                player.sendMessage(bunkerConfigManager.getMessage("argCommandUsage"));
                 return true;
         }
     }

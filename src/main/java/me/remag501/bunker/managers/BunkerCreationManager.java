@@ -11,7 +11,6 @@ import com.sk89q.worldguard.protection.regions.GlobalProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
 import me.remag501.bunker.Bunker;
 import me.remag501.bunker.core.BunkerInstance;
-import me.remag501.bunker.util.ConfigUtil;
 import org.bukkit.*;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -25,13 +24,13 @@ import java.util.UUID;
 public class BunkerCreationManager {
     private final Bunker plugin;
     private final Set<UUID> runningTasks = new HashSet<>();
-    private final ConfigManager configManager;
-    private final ConfigUtil bunkerConfig;
+    private final BunkerConfigManager bunkerConfigManager;
+    private final ConfigManager bunkerConfig;
 
-    public BunkerCreationManager(Bunker plugin, ConfigManager configManager) {
+    public BunkerCreationManager(Bunker plugin, BunkerConfigManager bunkerConfigManager) {
         this.plugin = plugin;
-        this.configManager = configManager;
-        this.bunkerConfig = new ConfigUtil(plugin, "bunkers.yml");
+        this.bunkerConfigManager = bunkerConfigManager;
+        this.bunkerConfig = new ConfigManager(plugin, "bunkers.yml");
     }
 
     // ---------------- Bunker Assignment & Config Access ----------------
@@ -62,8 +61,8 @@ public class BunkerCreationManager {
         bunkerConfig.save();
     }
 
-    public ConfigManager getConfigManger() {
-        return configManager;
+    public BunkerConfigManager getConfigManger() {
+        return bunkerConfigManager;
     }
 
     public boolean upgradeBunker(Player player, String bunkerLevel) {
@@ -98,7 +97,7 @@ public class BunkerCreationManager {
         bunkerConfig.save();
 
         // Add generators to bunker (needs to belong to player)
-        BunkerInstance bunkerInstance = configManager.getBunkerInstance("main");
+        BunkerInstance bunkerInstance = bunkerConfigManager.getBunkerInstance("main");
         World world = Bukkit.getWorld(getWorldName(playerName));
         GeneratorManager.createGenerator(Bukkit.getPlayer(playerName), world, bunkerInstance);
 
@@ -157,7 +156,7 @@ public class BunkerCreationManager {
 
     public void createBunkerWorld(String worldName) {
         plugin.getLogger().info("Initializing creation for: " + worldName);
-        BunkerInstance bunkerInstance = configManager.getBunkerInstance("main");
+        BunkerInstance bunkerInstance = bunkerConfigManager.getBunkerInstance("main");
 
         MultiverseCore multiverseCore = (MultiverseCore) Bukkit.getPluginManager().getPlugin("Multiverse-Core");
         MVWorldManager worldManager = multiverseCore.getMVWorldManager();
@@ -231,7 +230,7 @@ public class BunkerCreationManager {
     }
 
     private void applyWorldSettings(World world, MultiverseWorld mvWorld) {
-        Location newSpawn = ConfigManager.getSpawnLocation();
+        Location newSpawn = BunkerConfigManager.getSpawnLocation();
         if (mvWorld != null) {
             mvWorld.setAdjustSpawn(false);
             mvWorld.setSpawnLocation(newSpawn);
@@ -296,7 +295,7 @@ public class BunkerCreationManager {
 
     public boolean upgradeBunkerWorld(World world, String bunkerLevel, Player player) {
         // Get the BunkerInstance for the world
-        BunkerInstance bunkerInstance = configManager.getBunkerInstance(bunkerLevel);
+        BunkerInstance bunkerInstance = bunkerConfigManager.getBunkerInstance(bunkerLevel);
         if (bunkerInstance == null) {
             Bukkit.getLogger().warning("No bunker instance found for world: " + world.getName());
             return false;
