@@ -1,0 +1,58 @@
+package me.remag501.bunker.service;
+
+import eu.decentsoftware.holograms.api.DHAPI;
+import eu.decentsoftware.holograms.api.DecentHologramsAPI;
+import eu.decentsoftware.holograms.api.holograms.Hologram;
+import me.remag501.bunker.core.BunkerInstance;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.World;
+
+import java.util.List;
+
+public class HologramService {
+
+    public void addHologram(BunkerInstance bunkerInstance, World world) {
+        List<BunkerInstance.HologramInfo> holograms = bunkerInstance.getHolograms();
+        if (holograms == null || holograms.isEmpty()) return;
+
+        for (BunkerInstance.HologramInfo info : holograms) {
+            String templateName = info.name;
+            String type = info.type;
+            Location targetLocation = info.location;
+            targetLocation.setWorld(world); // assign world
+
+            Hologram template = DHAPI.getHologram(type);
+            if (template == null) {
+                Bukkit.getLogger().warning("Template hologram '" + type + "' not found. Skipping.");
+                continue;
+            }
+
+            String cloneName = world.getName() + "_" + templateName;
+            Hologram clone = template.clone(cloneName, targetLocation, false);
+            clone.enable();
+            clone.save();
+            DecentHologramsAPI.get().getHologramManager().registerHologram(clone);
+
+            Bukkit.getLogger().info("Cloned hologram '" + templateName + "' as '" + cloneName + "' at " + targetLocation);
+        }
+    }
+
+    public void removeHologram(String hologramName) {
+        Hologram hologram = DHAPI.getHologram(hologramName);
+        if (hologram == null) {
+            Bukkit.getLogger().warning("Hologram " + hologramName + " not found, cannot delete.");
+            return;
+        }
+        hologram.delete();
+    }
+
+    public void removeHolograms(BunkerInstance bunkerInstance, String worldName) {
+        List<String> holograms = bunkerInstance.getRemoveHolograms();
+        for (String hologramName: holograms) {
+            removeHologram(worldName + "_" + hologramName);
+        }
+    }
+
+}
+
