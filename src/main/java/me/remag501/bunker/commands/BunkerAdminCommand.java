@@ -4,7 +4,6 @@ import me.remag501.bunker.Bunker;
 import me.remag501.bunker.managers.AdminManager;
 import me.remag501.bunker.managers.BunkerCreationManager;
 import me.remag501.bunker.managers.ConfigManager;
-import me.remag501.bunker.managers.VisitRequestManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.World;

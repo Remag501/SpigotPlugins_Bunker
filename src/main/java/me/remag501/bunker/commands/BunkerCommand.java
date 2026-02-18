@@ -3,9 +3,6 @@ package me.remag501.bunker.commands;
 import me.remag501.bunker.Bunker;
 import me.remag501.bunker.managers.BunkerCreationManager;
 import me.remag501.bunker.managers.ConfigManager;
-import me.remag501.bunker.managers.VisitRequestManager;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.command.Command;
@@ -13,18 +10,14 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import java.util.UUID;
-
 public class BunkerCommand implements CommandExecutor {
     private final Bunker plugin;
     private final ConfigManager configManager;
-    private final VisitRequestManager visitRequestManager;
     private final BunkerCreationManager bunkerCreationManager;
 
     public BunkerCommand(Bunker plugin, ConfigManager configManager, BunkerCreationManager bunkerCreationManager) {
         this.plugin = plugin;
         this.configManager = configManager;
-        this.visitRequestManager = new VisitRequestManager(plugin);
         this.bunkerCreationManager = bunkerCreationManager;
     }
 
@@ -73,68 +66,41 @@ public class BunkerCommand implements CommandExecutor {
                 }
                 return true;
 
-            case "visit":
-//                if (args.length < 2) {
-//                    player.sendMessage(configManager.getMessage("visitCommandUsage"));
-//                    return true;
-//                }
-//                String targetName = args[1];
-//                if (!bunkerCreationManager.hasBunker(targetName)) {
-//                    player.sendMessage(configManager.getMessage("noBunker"));
-//                    return true;
-//                }
-//
-//                Player targetPlayer= Bukkit.getPlayer(targetName);
-//                if (targetPlayer == null) {
-//                    player.sendMessage("That player does not exist or is not online");
-//                    return true;
-//                }
-//
-//                UUID targetUUID = Bukkit.getPlayer(targetName).getUniqueId(); // or cached UUID method
-//                if (visitRequestManager.hasPendingRequest(targetUUID)) {
-//                    player.sendMessage("That player already has a pending visit request.");
-//                    return true;
-//                }
-//
-//                visitRequestManager.addRequest(player.getUniqueId(), targetPlayer, bunkerCreationManager.getWorldName(playerName));
-//                player.sendMessage("Visit request sent to " + targetName + ".");
-//                if (targetPlayer != null) {
-//                    targetPlayer.sendMessage(player.getName() + " wants to visit your bunker! Use /bunker accept or /bunker decline.");
-//                }
-                player.sendMessage("This command is temporarily removed");
-                return true;
+//            case "visit":
+//                player.sendMessage("This command is temporarily removed");
+//                return true;
 
-            case "accept":
-                if (!visitRequestManager.hasPendingRequest(player.getUniqueId())) {
-                    player.sendMessage("You have no pending visit requests.");
-                    return true;
-                }
-                Player requester = visitRequestManager.getPendingRequest(player.getUniqueId());
-                if (requester != null) {
-                    // Teleport visitor to bunker owner
-                    String ownerWorldName = bunkerCreationManager.getWorldName(playerName);
-                    World ownerWorld = plugin.getServer().getWorld(ownerWorldName);
-                    if (ownerWorld != null) {
-                        Location spawn = ownerWorld.getSpawnLocation();
-                        requester.teleport(spawn);
-                        requester.sendMessage("You have been teleported to " + playerName + "'s bunker.");
-                        player.sendMessage("You accepted the visit request.");
-                    } else {
-                        player.sendMessage("Bunker world not found.");
-                    }
-                } else {
-                    player.sendMessage("Requester is not online.");
-                }
-                return true;
-
-            case "decline":
-                if (!visitRequestManager.hasPendingRequest(player.getUniqueId())) {
-                    player.sendMessage("You have no pending visit requests.");
-                    return true;
-                }
-                visitRequestManager.removeRequest(player.getUniqueId());
-                player.sendMessage("You declined the visit request.");
-                return true;
+//            case "accept":
+//                if (!visitRequestManager.hasPendingRequest(player.getUniqueId())) {
+//                    player.sendMessage("You have no pending visit requests.");
+//                    return true;
+//                }
+//                Player requester = visitRequestManager.getPendingRequest(player.getUniqueId());
+//                if (requester != null) {
+//                    // Teleport visitor to bunker owner
+//                    String ownerWorldName = bunkerCreationManager.getWorldName(playerName);
+//                    World ownerWorld = plugin.getServer().getWorld(ownerWorldName);
+//                    if (ownerWorld != null) {
+//                        Location spawn = ownerWorld.getSpawnLocation();
+//                        requester.teleport(spawn);
+//                        requester.sendMessage("You have been teleported to " + playerName + "'s bunker.");
+//                        player.sendMessage("You accepted the visit request.");
+//                    } else {
+//                        player.sendMessage("Bunker world not found.");
+//                    }
+//                } else {
+//                    player.sendMessage("Requester is not online.");
+//                }
+//                return true;
+//
+//            case "decline":
+//                if (!visitRequestManager.hasPendingRequest(player.getUniqueId())) {
+//                    player.sendMessage("You have no pending visit requests.");
+//                    return true;
+//                }
+//                visitRequestManager.removeRequest(player.getUniqueId());
+//                player.sendMessage("You declined the visit request.");
+//                return true;
 
             default:
                 player.sendMessage(configManager.getMessage("argCommandUsage"));
