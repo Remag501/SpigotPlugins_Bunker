@@ -9,11 +9,18 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.List;
 
 public class GeneratorService {
+
+    private Plugin plugin;
+
+    public GeneratorService(Plugin plugin) {
+        this.plugin = plugin;
+    }
 
     public void createGenerator(Player player, World world, BunkerInstance bunkerInstance) {
         // 1. Get the NextGens API/Instance
@@ -60,7 +67,7 @@ public class GeneratorService {
                         public void run() {
                             activeGenerator.setTimer(mainTimer);
                         }
-                    }.runTaskLater(Bukkit.getPluginManager().getPlugin("Bunker"), 20);
+                    }.runTaskLater(plugin, 20);
 
                     activeGenerator.setTimer(20);
                     activeGenerator.setCorrupted(false);
