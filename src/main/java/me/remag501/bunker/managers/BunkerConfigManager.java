@@ -1,8 +1,7 @@
 package me.remag501.bunker.managers;
 
-import me.remag501.bunker.Bunker;
+import me.remag501.bunker.BunkerPlugin;
 import me.remag501.bunker.core.BunkerInstance;
-import me.remag501.bunker.service.SchematicService;
 import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -16,14 +15,14 @@ import java.util.stream.Collectors;
 
 public class BunkerConfigManager {
 
-    private final Bunker plugin;
+    private final BunkerPlugin plugin;
 
     private Map<String, String> messages = new HashMap<>();
     private Map<String, Double> doubles = new HashMap<>();
     private Map<String, BunkerInstance> bunkerInstances = new HashMap<>();
     private Location spawnLocation = null;
 
-    public BunkerConfigManager(Bunker plugin) {
+    public BunkerConfigManager(BunkerPlugin plugin) {
         this.plugin = plugin;
         reload();
     }

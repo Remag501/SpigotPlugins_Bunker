@@ -7,8 +7,6 @@ import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.GlobalProtectedRegion;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
-import me.remag501.bunker.Bunker;
-import org.bukkit.Bukkit;
 import org.bukkit.World;
 
 import java.util.logging.Logger;

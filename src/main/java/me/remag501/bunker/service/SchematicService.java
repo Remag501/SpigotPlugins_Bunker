@@ -13,7 +13,7 @@ import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import me.remag501.bgscore.api.task.TaskService;
-import me.remag501.bunker.Bunker;
+import me.remag501.bunker.BunkerPlugin;
 import me.remag501.bunker.core.BunkerInstance;
 import org.apache.commons.logging.Log;
 import org.bukkit.Bukkit;
@@ -39,7 +39,7 @@ public class SchematicService {
     public void addSchematic(BunkerInstance bunkerInstance, String worldName) {
         AtomicInteger attempts = new AtomicInteger();
 
-        taskService.subscribe(Bunker.SYSTEM_ID, "schematic-" + worldName, 0, 20, false, (ticks) -> {
+        taskService.subscribe(BunkerPlugin.SYSTEM_ID, "schematic-" + worldName, 0, 20, false, (ticks) -> {
             World world = Bukkit.getWorld(worldName);
             if (world != null) {
                 // Move to main thread for WorldEdit operations

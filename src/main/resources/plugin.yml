@@ -1,7 +1,8 @@
-name: Bunker
+name: ${project.name}
+version: ${project.version}
+
 author: Remag501
-version: 1.2
-main: me.remag501.bunker.Bunker
+main: me.remag501.bunker.BunkerPlugin
 api-version: '1.21'
 description: "Custom plugin for battlegrounds that allows creation and management of bunkers"
 

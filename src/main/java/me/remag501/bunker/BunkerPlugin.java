@@ -1,13 +1,11 @@
 package me.remag501.bunker;
 
-import com.sk89q.worldguard.WorldGuard;
 import me.remag501.bgscore.api.BGSApi;
 import me.remag501.bgscore.api.command.CommandService;
 import me.remag501.bgscore.api.event.EventService;
 import me.remag501.bgscore.api.task.TaskService;
 import me.remag501.bunker.commands.BunkerAdminCommand;
 import me.remag501.bunker.commands.BunkerCommand;
-//import me.remag501.bunker.commands.BunkerCommandOld;
 import me.remag501.bunker.listeners.GeneratorBreakListener;
 import me.remag501.bunker.listeners.OpenContainer;
 import me.remag501.bunker.managers.AdminManager;
@@ -19,7 +17,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.UUID;
 
-public final class Bunker extends JavaPlugin {
+public final class BunkerPlugin extends JavaPlugin {
 
     public static final UUID SYSTEM_ID = UUID.nameUUIDFromBytes("BUNKER_TASK".getBytes());
 

@@ -1,6 +1,6 @@
 package me.remag501.bunker.commands;
 
-import me.remag501.bunker.Bunker;
+import me.remag501.bunker.BunkerPlugin;
 import me.remag501.bunker.managers.BunkerCreationManager;
 import me.remag501.bunker.managers.BunkerConfigManager;
 import org.bukkit.Location;
@@ -11,11 +11,11 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 public class BunkerCommand implements CommandExecutor {
-    private final Bunker plugin;
+    private final BunkerPlugin plugin;
     private final BunkerConfigManager bunkerConfigManager;
     private final BunkerCreationManager bunkerCreationManager;
 
-    public BunkerCommand(Bunker plugin, BunkerConfigManager bunkerConfigManager, BunkerCreationManager bunkerCreationManager) {
+    public BunkerCommand(BunkerPlugin plugin, BunkerConfigManager bunkerConfigManager, BunkerCreationManager bunkerCreationManager) {
         this.plugin = plugin;
         this.bunkerConfigManager = bunkerConfigManager;
         this.bunkerCreationManager = bunkerCreationManager;

@@ -1,7 +1,7 @@
 package me.remag501.bunker.service;
 
 import me.remag501.bgscore.api.task.TaskService;
-import me.remag501.bunker.Bunker;
+import me.remag501.bunker.BunkerPlugin;
 import me.remag501.bunker.core.BunkerInstance;
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.npc.NPC;
@@ -28,7 +28,7 @@ public class NPCService {
         int[] attempts = {0};
         int maxAttempts = 100;
 
-        taskService.subscribe(Bunker.SYSTEM_ID, "npc-spawn-" + worldName, 0, 20, false, (ticks) -> {
+        taskService.subscribe(BunkerPlugin.SYSTEM_ID, "npc-spawn-" + worldName, 0, 20, false, (ticks) -> {
             World world = Bukkit.getWorld(worldName);
             if (world != null) {
                 // We are SYNC here because taskService.subscribe is sync

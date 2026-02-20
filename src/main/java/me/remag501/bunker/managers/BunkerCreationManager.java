@@ -1,14 +1,12 @@
 package me.remag501.bunker.managers;
 
 import me.remag501.bgscore.api.task.TaskService;
-import me.remag501.bunker.Bunker;
+import me.remag501.bunker.BunkerPlugin;
 import me.remag501.bunker.core.BunkerInstance;
 import me.remag501.bunker.service.*;
 import org.bukkit.*;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.mvplugins.multiverse.core.MultiverseCore;
 import org.mvplugins.multiverse.core.MultiverseCoreApi;
 import org.mvplugins.multiverse.core.world.MultiverseWorld;
 import org.mvplugins.multiverse.core.world.WorldManager;
@@ -190,7 +188,7 @@ public class BunkerCreationManager {
         // 2. Wait for the world to be loaded using TaskService
         // Owner: null (System task), Category: unique per world
         // Delay: 5 ticks, Interval: 10 ticks (0.5s)
-        taskService.subscribe(Bunker.SYSTEM_ID, "world-init-" + worldName, 5, 10, (iterations) -> {
+        taskService.subscribe(BunkerPlugin.SYSTEM_ID, "world-init-" + worldName, 5, 10, (iterations) -> {
             World world = Bukkit.getWorld(worldName);
 
             if (world != null) {

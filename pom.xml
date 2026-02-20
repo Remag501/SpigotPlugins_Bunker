@@ -5,11 +5,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>me.Remag501</groupId>
-    <artifactId>Bunker</artifactId>
-    <version>1.2-SNAPSHOT</version>
+    <artifactId>bunker</artifactId>
+    <version>1.0.0</version>
     <packaging>jar</packaging>
 
-    <name>Bunker</name>
+    <name>BGSBunker</name>
 
     <properties>
         <java.version>21</java.version>
